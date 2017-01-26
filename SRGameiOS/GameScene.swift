@@ -496,6 +496,10 @@ class GameScene: SKScene {
                 self.removeAllChildren()
                 for i in(0..<boards.count)
                 {
+                    for i in(0..<boards[i].label.count)
+                    {
+                        self.removeChildren(in: boards[i].label)
+                    }
                     boards[i].renderBoard()
                 }
                 drawCompass(angle: calculateCompass() )
@@ -566,14 +570,14 @@ class GameScene: SKScene {
     
     func drawCompass(angle : Float)
     {
-        var circle = SKShapeNode(circleOfRadius: 50 )
+        let circle = SKShapeNode(circleOfRadius: 50 )
         circle.position = CGPoint(x: -210, y: 402)
         self.addChild(circle)
         
         let newX : Int = Int(-((cos((angle * .pi) / 180)*2025) + 9450)/45)
         let newY : Int = Int(angle > 180 ? -sqrt(Double(2025 - pow((Double(newX + 210)), 2))) + 402 : sqrt(Double(2025 - pow((Double(newX + 210)), 2))) + 402 )
         
-        var path = CGMutablePath()
+        let path = CGMutablePath()
         path.move(to: CGPoint(x: -210, y: 402))
         path.addLine(to: CGPoint(x: newX, y: newY))
         let shape = SKShapeNode()
@@ -596,17 +600,65 @@ class GameScene: SKScene {
             angle = (angle * 180) / .pi
         } else
         {
-            if(playerPos[localPlayerId].id == 1)
+            if(treasurePos.id == 0)
             {
-                angle = 0
+                if(playerPos[localPlayerId].id == 1)
+                {
+                    angle = 0
+                }
+                else if(playerPos[localPlayerId].id == 2)
+                {
+                    angle = 90
+                }
+                else if(playerPos[localPlayerId].id == 3)
+                {
+                    angle = 180
+                }
             }
-            else if(playerPos[localPlayerId].id == 2)
+            else if(treasurePos.id == 1)
             {
-                angle = 90
+                if(playerPos[localPlayerId].id == 0)
+                {
+                    angle = 180
+                }
+                else if(playerPos[localPlayerId].id == 2)
+                {
+                    angle = 0
+                }
+                else if(playerPos[localPlayerId].id == 3)
+                {
+                    angle = 90
+                }
             }
-            else if(playerPos[localPlayerId].id == 3)
+            else if(treasurePos.id == 2)
             {
-                angle = 180
+                if(playerPos[localPlayerId].id == 0)
+                {
+                    angle = 90
+                }
+                else if(playerPos[localPlayerId].id == 1)
+                {
+                    angle = 90
+                }
+                else if(playerPos[localPlayerId].id == 3)
+                {
+                    angle = 0
+                }
+            }
+            else if(treasurePos.id == 3)
+            {
+                if(playerPos[localPlayerId].id == 0)
+                {
+                    angle = 0
+                }
+                else if(playerPos[localPlayerId].id == 1)
+                {
+                    angle = 90
+                }
+                else if(playerPos[localPlayerId].id == 2)
+                {
+                    angle = 180
+                }
             }
         }
         return angle
