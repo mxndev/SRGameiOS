@@ -416,90 +416,190 @@ class GameScene: SKScene {
                 if(localPlayerId == playerId)
                 {
                     // odkrycie nowych pól
-                    for var i in (position.x-1..<position.x+2)
+                    var matrixEnable : [[pos]] = []
+                    for i in (position.x-1..<position.x+2)
                     {
-                        var boardId = position.id
-                        for var j in (position.y-1..<position.y+2)
+                        var matrixLine : [pos] = []
+                        for j in (position.y-1..<position.y+2)
                         {
-                            if(i < 0)
+                            matrixLine.append(pos(id: position.id, x: i, y: j))
+                        }
+                        matrixEnable.append(matrixLine)
+                    }
+                    var boardId : Int = 0
+                    if(position.x == 0)
+                    {
+                        if(boards.count > 0)
+                        {
+                            if(position.id - 1 < 0)
                             {
-                                if(boards.count > 0)
-                                {
-                                    if(boardId - 1 < 0)
-                                    {
-                                        boardId = boards.count - 1;
-                                    }
-                                    else {
-                                        boardId -= 1;
-                                    }
-                                }
-                                i = 19
+                                boardId = boards.count - 1;
                             }
-                            if(i > 19)
-                            {
-                                if(boards.count > 0)
-                                {
-                                    if(boardId + 1 >= boards.count)
-                                    {
-                                        boardId = 0;
-                                    }
-                                    else {
-                                        boardId += 1;
-                                    }
-                                }
-                                i = 0
+                            else {
+                                boardId = position.id - 1;
                             }
-                            if(j < 0)
+                        }
+                        for i in (0..<3)
+                        {
+                            for j in (0..<3)
                             {
-                                if(boards.count > 2)
+                                if(i == 0)
                                 {
-                                if(boardId / 2 == 0)
-                                    {
-                                    if(((boardId == 1) && (boards.count > 3)) || ((boardId == 0) && (boards.count > 2)))
-                                        {
-                                            boardId += 2
-                                        }
-                                    }
-                                    else if(boardId / 2 == 1)
-                                    {
-                                        boardId -= 2
-                                    }
+                                    matrixEnable[i][j].id = boardId
+                                    matrixEnable[i][j].x = 19
                                 }
-                                j = 0
-                            }
-                            if(j > 19)
-                            {
-                                if(boards.count > 2)
-                                {
-                                    if(boardId / 2 == 0)
-                                    {
-                                        if(((boardId == 1) && (boards.count > 3)) || ((boardId == 0) && (boards.count > 2)))
-                                        {
-                                            boardId += 2
-                                        }
-                                    }
-                                    else if(boardId / 2 == 1)
-                                    {
-                                        boardId -= 2
-                                    }
-                                }
-                                j = 19
-                            }
-                            boards[boardId].matrixVisible[i][j] = 1
-                            if(vertical)
-                            {
-                                boardId = position.id
                             }
                         }
                     }
+                    if(position.y == 0)
+                    {
+                        if(boards.count > 2)
+                        {
+                            if(position.id  / 2 == 0)
+                            {
+                                if(((position.id  == 1) && (boards.count > 3)) || ((position.id  == 0) && (boards.count > 2)))
+                                {
+                                    boardId = position.id + 2
+                                }
+                            }
+                            else if(position.id  / 2 == 1)
+                            {
+                                boardId = position.id - 2
+                            }
+                        }
+                        for i in (0..<3)
+                        {
+                            for j in (0..<3)
+                            {
+                                if(j == 0)
+                                {
+                                    matrixEnable[i][j].id = boardId
+                                    matrixEnable[i][j].y = 0
+                                }
+                            }
+                        }
+                    }
+                    if(position.x == 19)
+                    {
+                        if(boards.count > 0)
+                        {
+                            if(position.id + 1 >= boards.count)
+                            {
+                                boardId = 0;
+                            }
+                            else {
+                                boardId = position.id + 1;
+                            }
+                        }
+                        for i in (0..<3)
+                        {
+                            for j in (0..<3)
+                            {
+                                if(i == 2)
+                                {
+                                    matrixEnable[i][j].id = boardId
+                                    matrixEnable[i][j].x = 0
+                                }
+                            }
+                        }
+                    }
+                    if(position.y == 19)
+                    {
+                        if(position.id / 2 == 0)
+                        {
+                            if(((position.id == 1) && (boards.count > 3)) || ((position.id == 0) && (boards.count > 2)))
+                            {
+                                boardId = position.id + 2
+                            }
+                        }
+                        else if(position.id / 2 == 1)
+                        {
+                            boardId = position.id - 2
+                        }
+                        for i in (0..<3)
+                        {
+                            for j in (0..<3)
+                            {
+                                if(j == 2)
+                                {
+                                    matrixEnable[i][j].id = boardId
+                                    matrixEnable[i][j].y = 19
+                                }
+                            }
+                        }
+                    }
+
+                    if((position.x == 0) && (position.y == 0))
+                    {
+                        var findBoards : Set<Int> = []
+                        findBoards.insert(matrixEnable[0][1].id)
+                        findBoards.insert(matrixEnable[1][0].id)
+                        findBoards.insert(matrixEnable[1][1].id)
+                        for i in (0..<4)
+                        {
+                            if(findBoards.contains(i))
+                            {
+                                matrixEnable[0][0].id = i
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if((position.x == 0) && (position.y == 19))
+                    {
+                        var findBoards : Set<Int> = []
+                        findBoards.insert(matrixEnable[0][1].id)
+                        findBoards.insert(matrixEnable[1][2].id)
+                        findBoards.insert(matrixEnable[0][2].id)
+                        for i in (0..<4)
+                        {
+                            if(findBoards.contains(i))
+                            {
+                                matrixEnable[0][2].id = i
+                                break;
+                            }
+                        }
+                    }
+
+                    if((position.x == 19) && (position.y == 0))
+                    {
+                        var findBoards : Set<Int> = []
+                        findBoards.insert(matrixEnable[1][0].id)
+                        findBoards.insert(matrixEnable[2][1].id)
+                        findBoards.insert(matrixEnable[2][0].id)
+                        for i in (0..<4)
+                        {
+                            if(findBoards.contains(i))
+                            {
+                                matrixEnable[2][0].id = i
+                                break;
+                            }
+                        }
+                    }
+
+                    if((position.x == 19) && (position.y == 19))
+                    {
+                        var findBoards : Set<Int> = []
+                        findBoards.insert(matrixEnable[1][2].id)
+                        findBoards.insert(matrixEnable[2][1].id)
+                        findBoards.insert(matrixEnable[2][2].id)
+                        for i in (0..<4)
+                        {
+                            if(findBoards.contains(i))
+                            {
+                                matrixEnable[2][2].id = i
+                                break;
+                            }
+                        }
+                    }
+
+                    enablePositions(matrixEnable: matrixEnable)
+
                 }
                 self.removeAllChildren()
+                
                 for i in(0..<boards.count)
                 {
-                    for i in(0..<boards[i].label.count)
-                    {
-                        self.removeChildren(in: boards[i].label)
-                    }
                     boards[i].renderBoard()
                 }
                 drawCompass(angle: calculateCompass() )
@@ -662,5 +762,16 @@ class GameScene: SKScene {
             }
         }
         return angle
+    }
+    
+    func enablePositions(matrixEnable : [[pos]])
+    {
+        for i in (0..<matrixEnable.count)
+        {
+            for j in (0..<matrixEnable[i].count)
+            {
+                boards[matrixEnable[i][j].id].matrixVisible[matrixEnable[i][j].x][matrixEnable[i][j].y] = 1
+            }
+        }
     }
 }

@@ -15,6 +15,7 @@ class BoardModel {
     public var matrix : [[Int]] = Array(repeating: Array(repeating: 0, count: 20), count: 20) // 1..4 - pozycje graczy, 5 - teren zabudowany, 6 - mina, 7 - skarb
     public var matrixVisible : [[Int]] = Array(repeating: Array(repeating: 0, count: 20), count: 20) // 0 - nieodkryty, 1 - odkryty
     var matrixShape : [[SKShapeNode]] = []
+    var label : [SKLabelNode] = []
     var posX : Int = 0
     var posY : Int = 0
     var skScene : SKScene
@@ -97,30 +98,45 @@ class BoardModel {
     
     func renderBoard()
     {
-        matrixShape.removeAll()
-        for i in (0..<matrix.count)
+        if((matrixShape.count == 0) && (label.count == 0))
         {
-            var shapeLine : [SKShapeNode] = []
-            var label : SKLabelNode?
-            for j in (0..<matrix[i].count)
+            for i in (0..<matrix.count)
             {
-                shapeLine.append(SKShapeNode(rectOf: CGSize(width: 15, height: 15)))
-                shapeLine[j].name = "bar"
-                shapeLine[j].fillColor = SKColor.white
-                shapeLine[j].position = CGPoint(x: i*17 - Int(skScene.size.width*0.48) + posX, y: Int(skScene.size.height*0.5) - 15 - j*17 + posY)
-                skScene.addChild(shapeLine[j])
-                
-                if(calculateMines(posX: i, posY: j) > 0)
+                var shapeLine : [SKShapeNode] = []
+                for j in (0..<matrix[i].count)
                 {
-                    label = SKLabelNode(fontNamed: "Arial")
-                    label?.text = String(calculateMines(posX: i, posY: j))
-                    label?.fontSize = 15
-                    label?.fontColor = UIColor.black
-                    label?.position = CGPoint(x: i*17 - Int(skScene.size.width*0.48) + posX, y: Int(skScene.size.height*0.5) - 21 - j*17 + posY)
-                    skScene.addChild(label!)
+                    shapeLine.append(SKShapeNode(rectOf: CGSize(width: 15, height: 15)))
+                    shapeLine[j].name = "bar"
+                    shapeLine[j].fillColor = SKColor.white
+                    shapeLine[j].position = CGPoint(x: i*17 - Int(skScene.size.width*0.48) + posX, y: Int(skScene.size.height*0.5) - 15 - j*17 + posY)
+                    skScene.addChild(shapeLine[j])
+                
+                    if(calculateMines(posX: i, posY: j) > 0)
+                    {
+                        label.append(SKLabelNode(fontNamed: "Arial"))
+                        label[label.count - 1].text = String(calculateMines(posX: i, posY: j))
+                        label[label.count - 1].fontSize = 15
+                        label[label.count - 1].fontColor = UIColor.black
+                        label[label.count - 1].position = CGPoint(x: i*17 - Int(skScene.size.width*0.48) + posX, y: Int(skScene.size.height*0.5) - 21 - j*17 + posY)
+                        skScene.addChild(label[label.count - 1])
+                    }
+                }
+                matrixShape.append(shapeLine)
+            }
+        }
+        else
+        {
+            for i in (0..<matrix.count)
+            {
+                for j in (0..<matrix[i].count)
+                {
+                    skScene.addChild(matrixShape[i][j])
                 }
             }
-            matrixShape.append(shapeLine)
+            for i in (0..<label.count)
+            {
+                skScene.addChild(label[i])
+            }
         }
     }
     
