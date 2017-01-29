@@ -14,8 +14,26 @@
 		D030115C1E35A713008EA4F2 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D030115A1E35A713008EA4F2 /* Main.storyboard */; };
 		D030115E1E35A713008EA4F2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D030115D1E35A713008EA4F2 /* Assets.xcassets */; };
 		D03011611E35A713008EA4F2 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D030115F1E35A713008EA4F2 /* LaunchScreen.storyboard */; };
+		D030CA281E3C3867004707BF /* SwiftSocket.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D030CA221E3C3588004707BF /* SwiftSocket.framework */; };
+		D030CA291E3C3867004707BF /* SwiftSocket.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D030CA221E3C3588004707BF /* SwiftSocket.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		D030CA331E3C43F5004707BF /* TCPListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = D030CA311E3C43F5004707BF /* TCPListener.swift */; };
+		D030CA341E3C43F5004707BF /* TCPSender.swift in Sources */ = {isa = PBXBuildFile; fileRef = D030CA321E3C43F5004707BF /* TCPSender.swift */; };
 		D03212F61E36F94700BF3927 /* BoardModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D03212F51E36F94700BF3927 /* BoardModel.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		D030CA2A1E3C3867004707BF /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				D030CA291E3C3867004707BF /* SwiftSocket.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		D030114D1E35A713008EA4F2 /* SRGameiOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SRGameiOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -27,7 +45,11 @@
 		D030115D1E35A713008EA4F2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D03011601E35A713008EA4F2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D03011621E35A713008EA4F2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D030CA221E3C3588004707BF /* SwiftSocket.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = SwiftSocket.framework; sourceTree = "<group>"; };
+		D030CA311E3C43F5004707BF /* TCPListener.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TCPListener.swift; sourceTree = "<group>"; };
+		D030CA321E3C43F5004707BF /* TCPSender.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TCPSender.swift; sourceTree = "<group>"; };
 		D03212F51E36F94700BF3927 /* BoardModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BoardModel.swift; sourceTree = "<group>"; };
+		D03EA4841E3D8EAB003D1A16 /* SRGameiOS-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "SRGameiOS-Bridging-Header.h"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -35,6 +57,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D030CA281E3C3867004707BF /* SwiftSocket.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -46,6 +69,7 @@
 			children = (
 				D030114F1E35A713008EA4F2 /* SRGameiOS */,
 				D030114E1E35A713008EA4F2 /* Products */,
+				D030CA211E3C3588004707BF /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -60,6 +84,9 @@
 		D030114F1E35A713008EA4F2 /* SRGameiOS */ = {
 			isa = PBXGroup;
 			children = (
+				D030CA311E3C43F5004707BF /* TCPListener.swift */,
+				D030CA321E3C43F5004707BF /* TCPSender.swift */,
+				D03EA4841E3D8EAB003D1A16 /* SRGameiOS-Bridging-Header.h */,
 				D03011501E35A713008EA4F2 /* AppDelegate.swift */,
 				D03011521E35A713008EA4F2 /* GameScene.sks */,
 				D03011561E35A713008EA4F2 /* GameScene.swift */,
@@ -73,6 +100,14 @@
 			path = SRGameiOS;
 			sourceTree = "<group>";
 		};
+		D030CA211E3C3588004707BF /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				D030CA221E3C3588004707BF /* SwiftSocket.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -83,6 +118,7 @@
 				D03011491E35A713008EA4F2 /* Sources */,
 				D030114A1E35A713008EA4F2 /* Frameworks */,
 				D030114B1E35A713008EA4F2 /* Resources */,
+				D030CA2A1E3C3867004707BF /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -147,9 +183,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D030CA331E3C43F5004707BF /* TCPListener.swift in Sources */,
 				D03212F61E36F94700BF3927 /* BoardModel.swift in Sources */,
 				D03011571E35A713008EA4F2 /* GameScene.swift in Sources */,
 				D03011591E35A713008EA4F2 /* GameViewController.swift in Sources */,
+				D030CA341E3C43F5004707BF /* TCPSender.swift in Sources */,
 				D03011511E35A713008EA4F2 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -274,11 +312,17 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = P757LEMUCG;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				INFOPLIST_FILE = SRGameiOS/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "mxn-dev.SRGameiOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_DISABLE_SAFETY_CHECKS = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "SRGameiOS-Bridging-Header.h";
 				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
@@ -288,11 +332,17 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = P757LEMUCG;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				INFOPLIST_FILE = SRGameiOS/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "mxn-dev.SRGameiOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_DISABLE_SAFETY_CHECKS = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "SRGameiOS-Bridging-Header.h";
 				SWIFT_VERSION = 3.0;
 			};
 			name = Release;

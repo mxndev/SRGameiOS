@@ -20,29 +20,64 @@ class BoardModel {
     var posY : Int = 0
     var skScene : SKScene
     
-    init(x : Int, y : Int, scene : SKScene)
+    init(scene : SKScene, initializeFields : Bool)
     {
-        posX = x
-        posY = y
         skScene = scene
         
         //losowanie liczby
         lossNumber = randomInt(min: 0, max: 2000000)
         
-        // ustawianie zabudowan
-        for _ in(0..<30)
+        if(initializeFields)
         {
-            let x: Int = randomInt(min: 0, max: 19)
-            let y: Int = randomInt(min: 0, max: 19)
-            matrix[x][y] = 5
+            // ustawianie zabudowan
+            for _ in(0..<30)
+            {
+                var x: Int = randomInt(min: 0, max: 19)
+                var y: Int = randomInt(min: 0, max: 19)
+                while ((x == 9) && (y == 9))
+                {
+                    x = randomInt(min: 0, max: 19)
+                    y = randomInt(min: 0, max: 19)
+                }
+                matrix[x][y] = 5
+            }
+            
+            // ustawianie min
+            for _ in(0..<30)
+            {
+                var x: Int = randomInt(min: 0, max: 19)
+                var y: Int = randomInt(min: 0, max: 19)
+                while ((x == 9) && (y == 9))
+                {
+                    x = randomInt(min: 0, max: 19)
+                    y = randomInt(min: 0, max: 19)
+                }
+                matrix[x][y] = 6
+            }
+            
+            //inicjalizacja planszy
+            renderBoard()
+        }
+    }
+    
+    func setXY(x : Int, y : Int)
+    {
+        posX = x
+        posY = y
+    }
+    
+    func setFields(mines : [Dictionary<String, AnyObject>], fields : [Dictionary<String, AnyObject>])
+    {
+        // ustawianie zabudowan
+        for element in fields
+        {
+            matrix[element["x"] as! Int][element["y"] as! Int] = 5
         }
         
         // ustawianie min
-        for _ in(0..<30)
+        for element in fields
         {
-            let x: Int = randomInt(min: 0, max: 19)
-            let y: Int = randomInt(min: 0, max: 19)
-            matrix[x][y] = 6
+            matrix[element["x"] as! Int][element["y"] as! Int] = 6
         }
         
         //inicjalizacja planszy
