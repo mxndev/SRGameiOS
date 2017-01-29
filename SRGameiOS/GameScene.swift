@@ -12,6 +12,7 @@ import GameplayKit
 struct player
 {
     public var ip : String
+    var lossNumber : Int = 0
     public var sender : TCPSender
     public var id : Int
     public var x, y : Int
@@ -48,7 +49,7 @@ class GameScene: SKScene {
     var localPlayerId : Int = 0 // lokalny gracz
     var playerWrapper : PlayerWrapper = PlayerWrapper(playerPos: [])
     var playerRound : Int = 0
-    var gameInitialized = false
+    var gameInitialized = true
     var treasurePos : pos = pos(id: 0, x: 5, y: 9)
     var buttonLeft : UIButton = UIButton()
     var buttonRight : UIButton = UIButton()
@@ -60,6 +61,19 @@ class GameScene: SKScene {
     var buttonRightUp : UIButton = UIButton()
     var sender : TCPListener!
     var appStarted : Bool = false
+    var labelIp : SKLabelNode?
+    var ip1 : UITextField = UITextField()
+    var port1 : UITextField = UITextField()
+    var ip2 : UITextField = UITextField()
+    var port2 : UITextField = UITextField()
+    var ip3 : UITextField = UITextField()
+    var port3 : UITextField = UITextField()
+    var connect : UIButton = UIButton()
+    var labelConnecting : SKLabelNode?
+    var connecting : Bool = false
+    var gameRun : Bool = false
+    var gameSetup : Bool = false
+    var countOfPlayers : Int = 0
     
     override func didMove(to view: SKView) {
     }
@@ -625,12 +639,237 @@ class GameScene: SKScene {
         }
     }
     
+    func connectButton()
+    {
+        self.ip1.removeFromSuperview()
+        self.port1.removeFromSuperview()
+        self.ip2.removeFromSuperview()
+        self.port2.removeFromSuperview()
+        self.ip3.removeFromSuperview()
+        self.port3.removeFromSuperview()
+        self.connect.removeFromSuperview()
+        self.removeAllChildren()
+        labelConnecting = SKLabelNode(fontNamed: "Arial")
+        labelConnecting!.text = String("Łączenie...")
+        labelConnecting!.fontSize = 20
+        labelConnecting!.fontColor = UIColor.white
+        labelConnecting!.position = CGPoint(x: -Int(self.size.width*0.48) + 100, y:  -250 + Int(self.size.height*0.5))
+        self.addChild(labelConnecting!)
+
+        sender.initialsMap += 1
+        self.countOfPlayers += 1
+        
+        if(ip1.text != "")
+        {
+            self.countOfPlayers += 1
+            let client = TCPSender()
+            client.connect(host: ip1.text!, port: port1.text!)
+            playerWrapper.playerPos.append(player(ip: ip1.text!, lossNumber: boardsWrapper.boards[boardsWrapper.boards.count - 1].lossNumber, sender: client, id: 0, x: 9, y: 9))
+            var queue : Dictionary<String, AnyObject> = [:]
+            var message : Dictionary<String, AnyObject> = [:]
+            queue["ip"] = playerWrapper.playerPos[localPlayerId].ip as AnyObject?
+            queue["number"] = playerWrapper.playerPos[localPlayerId].lossNumber as AnyObject?
+            message["randomQueue"] = queue as AnyObject?
+            client.sendData(params: message)
+        }
+        if(ip2.text != "")
+        {
+            self.countOfPlayers += 1
+            let client = TCPSender()
+            client.connect(host: ip2.text!, port: port2.text!)
+            playerWrapper.playerPos.append(player(ip: ip2.text!, lossNumber: boardsWrapper.boards[boardsWrapper.boards.count - 1].lossNumber, sender: client, id: 0, x: 9, y: 9))
+            var queue : Dictionary<String, AnyObject> = [:]
+            var message : Dictionary<String, AnyObject> = [:]
+            queue["ip"] = playerWrapper.playerPos[localPlayerId].ip as AnyObject?
+            queue["number"] = playerWrapper.playerPos[localPlayerId].lossNumber as AnyObject?
+            message["randomQueue"] = queue as AnyObject?
+            client.sendData(params: message)
+        }
+        if(ip3.text != "")
+        {
+            self.countOfPlayers += 1
+            let client = TCPSender()
+            client.connect(host: ip3.text!, port: port3.text!)
+            playerWrapper.playerPos.append(player(ip: ip3.text!, lossNumber: boardsWrapper.boards[boardsWrapper.boards.count - 1].lossNumber, sender: client, id: 0, x: 9, y: 9))
+            var queue : Dictionary<String, AnyObject> = [:]
+            var message : Dictionary<String, AnyObject> = [:]
+            queue["ip"] = playerWrapper.playerPos[localPlayerId].ip as AnyObject?
+            queue["number"] = playerWrapper.playerPos[localPlayerId].lossNumber as AnyObject?
+            message["randomQueue"] = queue as AnyObject?
+            client.sendData(params: message)
+        }
+        connecting = true
+    }
+    
     override func update(_ currentTime: TimeInterval) {
         if(!appStarted)
         {
-            sender = TCPListener(port: 51230, players: playerWrapper, boards: boardsWrapper, scene: self)
+            sender = TCPListener(port: 51210, players: playerWrapper, boards: boardsWrapper, scene: self)
             appStarted = true
+            
+            labelIp = SKLabelNode(fontNamed: "Arial")
+            labelIp?.text = String(getWiFiAddress()! + ":51210")
+            labelIp?.fontSize = 20
+            labelIp?.fontColor = UIColor.white
+            labelIp?.position = CGPoint(x: -Int(self.size.width*0.48) + 100, y:  -250 + Int(self.size.height*0.5))
+            self.addChild(labelIp!)
+            
+            ip1 = UITextField(frame: CGRect(x: 30, y: 100, width: 200, height: 30))
+            ip1.placeholder = "IP1"
+            ip1.text = "192.168.0.11"
+            ip1.font = UIFont.systemFont(ofSize: 15)
+            ip1.borderStyle = UITextBorderStyle.roundedRect
+            ip1.autocorrectionType = UITextAutocorrectionType.no
+            ip1.keyboardType = UIKeyboardType.default
+            ip1.returnKeyType = UIReturnKeyType.done
+            ip1.clearButtonMode = UITextFieldViewMode.whileEditing;
+            ip1.contentVerticalAlignment = UIControlContentVerticalAlignment.center
+            self.view?.addSubview(ip1)
+            
+            port1 = UITextField(frame: CGRect(x: 250, y: 100, width: 100, height: 30))
+            port1.placeholder = "PORT1"
+            port1.text = "51210"
+            port1.font = UIFont.systemFont(ofSize: 15)
+            port1.borderStyle = UITextBorderStyle.roundedRect
+            port1.autocorrectionType = UITextAutocorrectionType.no
+            port1.keyboardType = UIKeyboardType.default
+            port1.returnKeyType = UIReturnKeyType.done
+            port1.clearButtonMode = UITextFieldViewMode.whileEditing;
+            port1.contentVerticalAlignment = UIControlContentVerticalAlignment.center
+            self.view?.addSubview(port1)
+            
+            ip2 = UITextField(frame: CGRect(x: 30, y: 150, width: 200, height: 30))
+            ip2.placeholder = "IP2"
+            ip2.font = UIFont.systemFont(ofSize: 15)
+            ip2.borderStyle = UITextBorderStyle.roundedRect
+            ip2.autocorrectionType = UITextAutocorrectionType.no
+            ip2.keyboardType = UIKeyboardType.default
+            ip2.returnKeyType = UIReturnKeyType.done
+            ip2.clearButtonMode = UITextFieldViewMode.whileEditing;
+            ip2.contentVerticalAlignment = UIControlContentVerticalAlignment.center
+            self.view?.addSubview(ip2)
+            
+            port2 = UITextField(frame: CGRect(x: 250, y: 150, width: 100, height: 30))
+            port2.placeholder = "PORT2"
+            port2.font = UIFont.systemFont(ofSize: 15)
+            port2.borderStyle = UITextBorderStyle.roundedRect
+            port2.autocorrectionType = UITextAutocorrectionType.no
+            port2.keyboardType = UIKeyboardType.default
+            port2.returnKeyType = UIReturnKeyType.done
+            port2.clearButtonMode = UITextFieldViewMode.whileEditing;
+            port2.contentVerticalAlignment = UIControlContentVerticalAlignment.center
+            self.view?.addSubview(port2)
+            
+            ip3 = UITextField(frame: CGRect(x: 30, y: 200, width: 200, height: 30))
+            ip3.placeholder = "IP3"
+            ip3.font = UIFont.systemFont(ofSize: 15)
+            ip3.borderStyle = UITextBorderStyle.roundedRect
+            ip3.autocorrectionType = UITextAutocorrectionType.no
+            ip3.keyboardType = UIKeyboardType.default
+            ip3.returnKeyType = UIReturnKeyType.done
+            ip3.clearButtonMode = UITextFieldViewMode.whileEditing;
+            ip3.contentVerticalAlignment = UIControlContentVerticalAlignment.center
+            self.view?.addSubview(ip3)
+            
+            port3 = UITextField(frame: CGRect(x: 250, y: 200, width: 100, height: 30))
+            port3.placeholder = "PORT3"
+            port3.font = UIFont.systemFont(ofSize: 15)
+            port3.borderStyle = UITextBorderStyle.roundedRect
+            port3.autocorrectionType = UITextAutocorrectionType.no
+            port3.keyboardType = UIKeyboardType.default
+            port3.returnKeyType = UIReturnKeyType.done
+            port3.clearButtonMode = UITextFieldViewMode.whileEditing;
+            port3.contentVerticalAlignment = UIControlContentVerticalAlignment.center
+            self.view?.addSubview(port3)
+            
+            boardsWrapper.boards.append(BoardModel(scene: self, initializeFields: true))
+            playerWrapper.playerPos.append(player(ip: getWiFiAddress()!, lossNumber: boardsWrapper.boards[boardsWrapper.boards.count - 1].lossNumber, sender: TCPSender(), id: 0, x: 9, y: 9))
+            
+            connect = UIButton(frame: CGRect(x: 30, y: 250, width: 100, height: 50))
+            connect.setTitle("Połącz", for: .normal)
+            connect.addTarget(self, action: #selector(connectButton), for: .touchUpInside)
+            self.view?.addSubview(connect)
         }
+        if(connecting)
+        {
+            if(self.countOfPlayers == boardsWrapper.boards.count)
+            {
+                if(playerWrapper.playerPos.count > 1)
+                {
+                    // gdy wszystkie roundQueue dotarły
+                    if((playerWrapper.playerPos.count == boardsWrapper.boards.count) && !gameSetup)
+                    {
+                        // gdy jest wiecej niz jeden gracz
+                        for i in (0..<playerWrapper.playerPos.count)
+                        {
+                            for j in (0..<boardsWrapper.boards.count)
+                            {
+                                if(boardsWrapper.boards[j].ip == playerWrapper.playerPos[i].ip)
+                                {
+                                    playerWrapper.playerPos[i].lossNumber = boardsWrapper.boards[j].lossNumber
+                                }
+                            }
+                        }
+                        
+                        // sortowanie klas
+                        boardsWrapper.boards.sorted(by: { $0.lossNumber > $1.lossNumber })
+                        playerWrapper.playerPos.sorted(by: { $0.lossNumber > $1.lossNumber })
+                        
+                        //ustawienie wartosci id
+                        for i in (0..<playerWrapper.playerPos.count)
+                        {
+                            playerWrapper.playerPos[i].id = i
+                        }
+                        localPlayerId = self.getLocalIdPlayer()
+                        
+                        for i in (0..<playerWrapper.playerPos.count)
+                        {
+                            if(i != localPlayerId)
+                            {
+                                let dd = boardsWrapper.boards[localPlayerId].genereteMinesBuildingDictionary(id: localPlayerId)
+                                playerWrapper.playerPos[i].sender.sendData(params: dd)
+                            }
+                        }
+                        
+                        gameSetup = true
+                    }
+                }
+                if(sender.initialsMap == boardsWrapper.boards.count)
+                {
+                    self.removeAllChildren()
+                    // wyślij wszystkim mapy
+                    if(playerWrapper.playerPos.count > 1)
+                    {
+                        // gdy jest wiecej niz jeden gracz
+                        
+                    }
+                    connecting = false
+                    gameInitialized = false
+                    for i in(0..<boardsWrapper.boards.count)
+                    {
+                        if(i == 0)
+                        {
+                            boardsWrapper.boards[i].setXY(x: 0, y: -350)
+                        }
+                        else if(i == 1)
+                        {
+                            boardsWrapper.boards[i].setXY(x: 370, y: -350)
+                        }
+                        else if(i == 2)
+                        {
+                            boardsWrapper.boards[i].setXY(x: 0, y: -700)
+                        }
+                        else if(i == 3)
+                        {
+                            boardsWrapper.boards[i].setXY(x: 370, y: -700)
+                        }
+                        boardsWrapper.boards[i].renderBoard()
+                    }
+                    drawCompass(angle: calculateCompass() )
+                }
+            }
+        }
+        
         if(!gameInitialized)
         {
             buttonLeft = UIButton(frame: CGRect(x: 10, y: 80, width: 100, height: 50))
@@ -673,8 +912,7 @@ class GameScene: SKScene {
             buttonRightUp.addTarget(self, action: #selector(rightUpButton), for: .touchUpInside)
             self.view?.addSubview(buttonRightUp)
             
-            playerWrapper.playerPos.append(player(ip: "76", sender: TCPSender(), id: 0, x: 9, y: 9))
-            boardsWrapper.boards.append(BoardModel(scene: self, initializeFields: true))
+            
             //boardsWrapper.boards.append(BoardModel(x: 0, y: -350, scene: self))
             //boardsWrapper.boards.append(BoardModel(x: 370, y: -350, scene: self))
             //boardsWrapper.boards.append(BoardModel(x: 0, y: -700, scene: self))
@@ -685,11 +923,27 @@ class GameScene: SKScene {
             
             boardsWrapper.boards[treasurePos.id].matrix[treasurePos.x][treasurePos.y] = 7
             gameInitialized = true
+            gameRun = true
         }
-        for i in(0..<boardsWrapper.boards.count)
+        if(gameRun)
         {
-            boardsWrapper.boards[i].refreshBoard()
+            for i in(0..<boardsWrapper.boards.count)
+            {
+                boardsWrapper.boards[i].refreshBoard()
+            }
         }
+    }
+    
+    func getLocalIdPlayer() -> Int
+    {
+        for i in (0..<playerWrapper.playerPos.count)
+        {
+            if(playerWrapper.playerPos[i].ip == getWiFiAddress())
+            {
+                return i
+            }
+        }
+        return 0
     }
     
     func drawCompass(angle : Float)
@@ -797,5 +1051,40 @@ class GameScene: SKScene {
                 boardsWrapper.boards[matrixEnable[i][j].id].matrixVisible[matrixEnable[i][j].x][matrixEnable[i][j].y] = 1
             }
         }
+    }
+    
+    func getWiFiAddress() -> String? {
+        var address : String?
+        
+        // Get list of all interfaces on the local machine:
+        var ifaddr : UnsafeMutablePointer<ifaddrs>?
+        guard getifaddrs(&ifaddr) == 0 else { return nil }
+        guard let firstAddr = ifaddr else { return nil }
+        
+        // For each interface ...
+        for ifptr in sequence(first: firstAddr, next: { $0.pointee.ifa_next }) {
+            let interface = ifptr.pointee
+            
+            // Check for IPv4 or IPv6 interface:
+            let addrFamily = interface.ifa_addr.pointee.sa_family
+            if addrFamily == UInt8(AF_INET) || addrFamily == UInt8(AF_INET6) {
+                
+                // Check interface name:
+                let name = String(cString: interface.ifa_name)
+                if  name == "en0" {
+                    
+                    // Convert interface address to a human readable string:
+                    var addr = interface.ifa_addr.pointee
+                    var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+                    getnameinfo(&addr, socklen_t(interface.ifa_addr.pointee.sa_len),
+                                &hostname, socklen_t(hostname.count),
+                                nil, socklen_t(0), NI_NUMERICHOST)
+                    address = String(cString: hostname)
+                }
+            }
+        }
+        freeifaddrs(ifaddr)
+        
+        return address
     }
 }

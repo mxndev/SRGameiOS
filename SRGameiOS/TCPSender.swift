@@ -12,8 +12,8 @@ import SwiftSocket
 class TCPSender : AnyObject {
     var client : TCPClient!
     
-    func connect(host: CFString, port : UInt32) {
-        client = TCPClient(address: host as String, port: Int32(port))
+    func connect(host: String, port : String) {
+        client = TCPClient(address: host, port: Int32(port)!)
         if(client.connect(timeout: 1).isSuccess)
         {
             print("Connected to client: \(host as String)")
@@ -26,11 +26,11 @@ class TCPSender : AnyObject {
         client.close()
     }
     
-    func processReceivedData(params: [String : AnyObject])
+    func sendData(params: Dictionary<String, AnyObject>)
     {
-        if(client.send(string: JSONStringify(value: params as AnyObject)).isSuccess)
+        if(client.send(string: JSONStringify(value: params as AnyObject) + "\n").isSuccess)
         {
-            print("Message send.")
+            print("Message send: \(JSONStringify(value: params as AnyObject))")
         }
     }
     

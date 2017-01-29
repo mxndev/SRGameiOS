@@ -19,16 +19,21 @@ class BoardModel {
     var posX : Int = 0
     var posY : Int = 0
     var skScene : SKScene
+    var ip : String
     
     init(scene : SKScene, initializeFields : Bool)
     {
         skScene = scene
         
-        //losowanie liczby
-        lossNumber = randomInt(min: 0, max: 2000000)
+        ip = ""
         
         if(initializeFields)
         {
+            ip = "127.0.0.1"
+            
+            //losowanie liczby
+            lossNumber = randomInt(min: 0, max: 2000000)
+            
             // ustawianie zabudowan
             for _ in(0..<30)
             {
@@ -55,9 +60,13 @@ class BoardModel {
                 matrix[x][y] = 6
             }
             
-            //inicjalizacja planszy
-            renderBoard()
         }
+    }
+    
+    func setInitialNumber(number : Int, ip : String)
+    {
+        self.lossNumber = number
+        self.ip = ip
     }
     
     func setXY(x : Int, y : Int)
@@ -75,13 +84,51 @@ class BoardModel {
         }
         
         // ustawianie min
-        for element in fields
+        for element in mines
         {
             matrix[element["x"] as! Int][element["y"] as! Int] = 6
         }
         
-        //inicjalizacja planszy
-        renderBoard()
+    }
+    
+    func genereteMinesBuildingDictionary(id : Int) -> Dictionary<String, AnyObject>
+    {
+        var mines : Array<Any> = []
+        var buildings : Array<Any> = []
+        for i in(0..<20)
+        {
+            for j in(0..<20)
+            {
+                if(matrix[i][j] == 5)
+                {
+                    var element : Dictionary<String, AnyObject> = [:]
+                    element["p"] = id as AnyObject?
+                    element["x"] = i as AnyObject?
+                    element["y"] = j as AnyObject?
+                    buildings.append(element)
+                }
+            }
+        }
+        for i in(0..<20)
+        {
+            for j in(0..<20)
+            {
+                if(matrix[i][j] == 6)
+                {
+                    var element : Dictionary<String, AnyObject> = [:]
+                    element["p"] = id as AnyObject?
+                    element["x"] = i as AnyObject?
+                    element["y"] = j as AnyObject?
+                    mines.append(element)
+                }
+            }
+        }
+        var mapp : Dictionary<String, AnyObject> = [:]
+        var message : Dictionary<String, AnyObject> = [:]
+        mapp["mines"] = mines as AnyObject?
+        mapp["buildings"] = buildings as AnyObject?
+        message["map"] = mapp as AnyObject?
+        return message
     }
     
     func refreshBoard()

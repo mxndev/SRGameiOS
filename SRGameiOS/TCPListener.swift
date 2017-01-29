@@ -18,6 +18,7 @@ class TCPListener : AnyObject
     var players : PlayerWrapper = PlayerWrapper(playerPos: [])
     var boards : BoardsWrapper = BoardsWrapper(boards: [])
     var skScene : SKScene
+    var initialsMap : Int
     
     init(port : Int32, players : PlayerWrapper, boards : BoardsWrapper, scene : SKScene)
     {
@@ -25,6 +26,8 @@ class TCPListener : AnyObject
         self.port = port
         self.players = players
         self.boards = boards
+        self.initialsMap = 0
+        startServer()
     }
     
     func stopServer() {
@@ -38,31 +41,26 @@ class TCPListener : AnyObject
         {
             while true
             {
-                let status = self.server.listen()
-                if status.isSuccess
+                self.server.listen()
+                if let client = self.server.accept()
                 {
-                    if let client = self.server.accept()
+                    print("Client connected IP:\(client.address) Port:[\(client.port)]")
+                    while true
                     {
-                        print("Client connected IP:\(client.address) Port:[\(client.port)]")
-                        while true
+                        let test = client.read(1024*10)
+                        if(test == nil)
                         {
-                            let test = client.read(1024*10)
-                            if(test == nil)
-                            {
-                                print("Client \(client.address) disconnected.")
-                                client.close()
-                                break
-                            }
-                            if(test! != [])
-                            {
-                                let count = (test?.count)! / MemoryLayout<UInt8>.size
-                                let datastring = NSString(bytes: test!, length: count, encoding: String.Encoding.ascii.rawValue)
-                                print("New message: \(datastring as! String)")
-                                self.analyseIncomingJSONMessage(jsonString: datastring as! String)
-                            }
+                            print("Client \(client.address) disconnected.")
+                            client.close()
+                            break
                         }
-                    } else {
-                        print("Error during connecting...")
+                        if(test! != [])
+                        {
+                            let count = (test?.count)! / MemoryLayout<UInt8>.size
+                            let datastring = NSString(bytes: test!, length: count, encoding: String.Encoding.ascii.rawValue)
+                            print("New message: \(datastring as! String)")
+                            self.analyseIncomingJSONMessage(jsonString: datastring as! String)
+                        }
                     }
                 }
             }
@@ -72,10 +70,16 @@ class TCPListener : AnyObject
     func analyseIncomingJSONMessage(jsonString : String)
     {
         let JSONDictionary = convertToDictionary(text: jsonString)
-        if(JSONDictionary?["map"] != nil)
+        if(JSONDictionary?["randomQueue"] != nil)
         {
             boards.boards.append(BoardModel(scene: skScene, initializeFields: false))
-            boards.boards[boards.boards.count - 1].setFields(mines: convertToDictionary(text: convertToJSON(value: JSONDictionary?["map"] as AnyObject))?["mines"] as! [Dictionary<String, AnyObject>], fields: convertToDictionary(text: convertToJSON(value: JSONDictionary?["map"] as AnyObject))?["buildings"] as! [Dictionary<String, AnyObject>])
+            boards.boards[boards.boards.count - 1].setInitialNumber(number: convertToDictionary(text: convertToJSON(value: JSONDictionary?["randomQueue"] as AnyObject))?["number"] as! Int, ip:(convertToDictionary(text: convertToJSON(value: JSONDictionary?["randomQueue"] as AnyObject))?["ip"] as! String).characters.split{$0 == ":"}.map(String.init)[0])
+        }
+        else if(JSONDictionary?["map"] != nil)
+        {
+            var buildings = convertToDictionary(text: convertToJSON(value: JSONDictionary?["map"] as AnyObject))?["buildings"] as! [Dictionary<String, AnyObject>]
+            boards.boards[buildings[0]["p"] as! Int].setFields(mines: convertToDictionary(text: convertToJSON(value: JSONDictionary?["map"] as AnyObject))?["mines"] as! [Dictionary<String, AnyObject>], fields: convertToDictionary(text: convertToJSON(value: JSONDictionary?["map"] as AnyObject))?["buildings"] as! [Dictionary<String, AnyObject>])
+            self.initialsMap += 1
         }
     }
     
@@ -84,6 +88,7 @@ class TCPListener : AnyObject
             do {
                 if let json = try JSONSerialization.jsonObject(with: data, options:.allowFragments) as? [String:Any] {
                     print(json)
+                    return json
                 }
             } catch let err{
                 print(err.localizedDescription)
