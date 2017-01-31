@@ -17,12 +17,12 @@ class TCPListener : AnyObject
     var port : Int32
     var players : PlayerWrapper = PlayerWrapper(playerPos: [])
     var boards : BoardsWrapper = BoardsWrapper(boards: [])
-    var skScene : SKScene
+    var gameScene : GameScene
     var initialsMap : Int
     
-    init(port : Int32, players : PlayerWrapper, boards : BoardsWrapper, scene : SKScene)
+    init(port : Int32, players : PlayerWrapper, boards : BoardsWrapper, scene : GameScene)
     {
-        self.skScene = scene
+        self.gameScene = scene
         self.port = port
         self.players = players
         self.boards = boards
@@ -36,7 +36,7 @@ class TCPListener : AnyObject
     
     func startServer()
     {
-        self.server = TCPServer(address: getWiFiAddress()!, port: self.port)
+        self.server = TCPSender(address: getWiFiAddress()!, port: self.port)
         DispatchQueue.global(qos: .background).async
         {
             while true
@@ -72,7 +72,7 @@ class TCPListener : AnyObject
         let JSONDictionary = convertToDictionary(text: jsonString)
         if(JSONDictionary?["randomQueue"] != nil)
         {
-            boards.boards.append(BoardModel(scene: skScene, initializeFields: false))
+            boards.boards.append(BoardModel(scene: gameScene, initializeFields: false))
             boards.boards[boards.boards.count - 1].setInitialNumber(number: convertToDictionary(text: convertToJSON(value: JSONDictionary?["randomQueue"] as AnyObject))?["number"] as! Int, ip:(convertToDictionary(text: convertToJSON(value: JSONDictionary?["randomQueue"] as AnyObject))?["ip"] as! String).characters.split{$0 == ":"}.map(String.init)[0])
         }
         else if(JSONDictionary?["map"] != nil)
@@ -80,6 +80,23 @@ class TCPListener : AnyObject
             var buildings = convertToDictionary(text: convertToJSON(value: JSONDictionary?["map"] as AnyObject))?["buildings"] as! [Dictionary<String, AnyObject>]
             boards.boards[buildings[0]["p"] as! Int].setFields(mines: convertToDictionary(text: convertToJSON(value: JSONDictionary?["map"] as AnyObject))?["mines"] as! [Dictionary<String, AnyObject>], fields: convertToDictionary(text: convertToJSON(value: JSONDictionary?["map"] as AnyObject))?["buildings"] as! [Dictionary<String, AnyObject>])
             self.initialsMap += 1
+        }
+        else if(JSONDictionary?["treasure"] != nil)
+        {
+            boards.treasurePos.id = convertToDictionary(text: convertToJSON(value: JSONDictionary?["treasure"] as AnyObject))?["p"] as! Int
+            boards.treasurePos.x = convertToDictionary(text: convertToJSON(value: JSONDictionary?["treasure"] as AnyObject))?["x"] as! Int
+            boards.treasurePos.y = convertToDictionary(text: convertToJSON(value: JSONDictionary?["treasure"] as AnyObject))?["y"] as! Int
+            if(!boards.tresurePacketAnalysed)
+            {
+                boards.tresurePacketAnalysed = true
+            }
+        }
+        else if(JSONDictionary?["player"] != nil)
+        {
+            boards.treasurePos.id = convertToDictionary(text: convertToJSON(value: JSONDictionary?["player"] as AnyObject))?["p"] as! Int
+            boards.treasurePos.x = convertToDictionary(text: convertToJSON(value: JSONDictionary?["player"] as AnyObject))?["x"] as! Int
+            boards.treasurePos.y = convertToDictionary(text: convertToJSON(value: JSONDictionary?["player"] as AnyObject))?["y"] as! Int
+            gameScene.makeMove(player: players.playerPos[players.playerId])
         }
     }
     

@@ -26,6 +26,7 @@ struct pos
 
 class PlayerWrapper {
     var playerPos : [player] = []
+    var playerId : Int = 0 // runda gracza
     
     init(playerPos: [player]) {
         self.playerPos = playerPos
@@ -33,6 +34,8 @@ class PlayerWrapper {
 
 class BoardsWrapper {
     var boards : [BoardModel] = []
+    var treasurePos : pos = pos(id: 0, x: 0, y: 0)
+    var tresurePacketAnalysed : Bool = false
     
     init(boards: [BoardModel]) {
         self.boards = boards
@@ -45,12 +48,13 @@ class GameScene: SKScene {
     private var spinnyNode : SKShapeNode?
     var boardsWrapper : BoardsWrapper = BoardsWrapper(boards: [])
 
-    var playerId : Int = 0 // runda gracza
     var localPlayerId : Int = 0 // lokalny gracz
+    var gameState : Int = 0 // 0 - ekran wpisywania ip, 1 - ekran łączenia, 2 - inicjalizowanie gry, 3 - tryb gry
+    var initializingGameState : Int = 0 // 0 - ustawianie kolejki rundy, 1 - przesłanie map, 3 - generacja skarbu
+    var appLoaded : Bool = false
+    var roundQueueLoaded : Bool = false
     var playerWrapper : PlayerWrapper = PlayerWrapper(playerPos: [])
     var playerRound : Int = 0
-    var gameInitialized = true
-    var treasurePos : pos = pos(id: 0, x: 5, y: 9)
     var buttonLeft : UIButton = UIButton()
     var buttonRight : UIButton = UIButton()
     var buttonUp : UIButton = UIButton()
@@ -60,7 +64,6 @@ class GameScene: SKScene {
     var buttonRightDown : UIButton = UIButton()
     var buttonRightUp : UIButton = UIButton()
     var sender : TCPListener!
-    var appStarted : Bool = false
     var labelIp : SKLabelNode?
     var ip1 : UITextField = UITextField()
     var port1 : UITextField = UITextField()
@@ -70,9 +73,6 @@ class GameScene: SKScene {
     var port3 : UITextField = UITextField()
     var connect : UIButton = UIButton()
     var labelConnecting : SKLabelNode?
-    var connecting : Bool = false
-    var gameRun : Bool = false
-    var gameSetup : Bool = false
     var countOfPlayers : Int = 0
     
     override func didMove(to view: SKView) {
@@ -103,291 +103,315 @@ class GameScene: SKScene {
     
     func leftButton()
     {
-        var newPos : player = playerWrapper.playerPos[localPlayerId]
-        if(newPos.x - 1 < 0)
+        if(localPlayerId == playerWrapper.playerId)
         {
-            if(boardsWrapper.boards.count > 0)
+            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
+            if(newPlayer.x - 1 < 0)
             {
-                if(newPos.id - 1 < 0)
+                if(boardsWrapper.boards.count > 0)
                 {
-                    newPos.id = boardsWrapper.boards.count - 1;
+                    if(newPlayer.id - 1 < 0)
+                    {
+                        newPlayer.id = boardsWrapper.boards.count - 1;
+                    }
+                    else {
+                        newPlayer.id -= 1;
+                    }
                 }
-                else {
-                    newPos.id -= 1;
-                }
+                newPlayer.x = 19
             }
-            newPos.x = 19
+            else
+            {
+                newPlayer.x -= 1
+            }
+            makeMove(player: newPlayer)
         }
-        else
-        {
-            newPos.x -= 1
-        }
-        makeMove(position: newPos, vertical: false)
     }
     
     func rightButton()
     {
-        var newPos : player = playerWrapper.playerPos[localPlayerId]
-        if(newPos.x + 1 > 19)
+        if(localPlayerId == playerWrapper.playerId)
         {
-            if(boardsWrapper.boards.count > 0)
+            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
+            if(newPlayer.x + 1 > 19)
             {
-                if(newPos.id + 1 >= boardsWrapper.boards.count)
+                if(boardsWrapper.boards.count > 0)
                 {
-                    newPos.id = 0;
+                    if(newPlayer.id + 1 >= boardsWrapper.boards.count)
+                    {
+                        newPlayer.id = 0;
+                    }
+                    else {
+                        newPlayer.id += 1;
+                    }
                 }
-                else {
-                    newPos.id += 1;
-                }
+                newPlayer.x = 0
             }
-            newPos.x = 0
+            else
+            {
+                newPlayer.x += 1
+            }
+            makeMove(player: newPlayer)
         }
-        else
-        {
-            newPos.x += 1
-        }
-        makeMove(position: newPos, vertical: false)
     }
     
     func upButton()
     {
-        var newPos : player = playerWrapper.playerPos[localPlayerId]
-        if(newPos.y - 1 < 0)
+        if(localPlayerId == playerWrapper.playerId)
         {
-            if(boardsWrapper.boards.count > 2)
+            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
+            if(newPlayer.y - 1 < 0)
             {
-                if(newPos.id / 2 == 0)
+                if(boardsWrapper.boards.count > 2)
                 {
-                    if(((newPos.id == 1) && (boardsWrapper.boards.count > 3)) || ((newPos.id == 0) && (boardsWrapper.boards.count > 2)))
+                    if(newPlayer.id / 2 == 0)
                     {
-                        newPos.id += 2
+                        if(((newPlayer.id == 1) && (boardsWrapper.boards.count > 3)) || ((newPlayer.id == 0) && (boardsWrapper.boards.count > 2)))
+                        {
+                            newPlayer.id += 2
+                        }
                     }
+                    else if(newPlayer.id / 2 == 1)
+                    {
+                        newPlayer.id -= 2
+                    }
+                    newPlayer.y = 0
                 }
-                else if(newPos.id / 2 == 1)
-                {
-                    newPos.id -= 2
-                }
-                newPos.y = 0
             }
+            else
+            {
+                newPlayer.y -= 1
+            }
+            makeMove(player: newPlayer)
         }
-        else
-        {
-            newPos.y -= 1
-        }
-        makeMove(position: newPos, vertical: true)
     }
     
     func downButton()
     {
-        var newPos : player = playerWrapper.playerPos[localPlayerId]
-        if(newPos.y + 1 > 19)
+        if(localPlayerId == playerWrapper.playerId)
         {
-            if(boardsWrapper.boards.count > 2)
+            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
+            if(newPlayer.y + 1 > 19)
             {
-                if(newPos.id / 2 == 0)
+                if(boardsWrapper.boards.count > 2)
                 {
-                    if(((newPos.id == 1) && (boardsWrapper.boards.count > 3)) || ((newPos.id == 0) && (boardsWrapper.boards.count > 2)))
+                    if(newPlayer.id / 2 == 0)
                     {
-                        newPos.id += 2
+                        if(((newPlayer.id == 1) && (boardsWrapper.boards.count > 3)) || ((newPlayer.id == 0) && (boardsWrapper.boards.count > 2)))
+                        {
+                            newPlayer.id += 2
+                        }
                     }
+                    else if(newPlayer.id / 2 == 1)
+                    {
+                        newPlayer.id -= 2
+                    }
+                    newPlayer.y = 19
                 }
-                else if(newPos.id / 2 == 1)
-                {
-                    newPos.id -= 2
-                }
-                newPos.y = 19
             }
+            else
+            {
+                newPlayer.y += 1
+            }
+            makeMove(player: newPlayer)
         }
-        else
-        {
-            newPos.y += 1
-        }
-        makeMove(position: newPos, vertical: true)
     }
     
     func leftDownButton()
     {
-        var newPos : player = playerWrapper.playerPos[localPlayerId]
-        if(newPos.x - 1 < 0)
+        if(localPlayerId == playerWrapper.playerId)
         {
-            if(boardsWrapper.boards.count > 0)
+            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
+            if(newPlayer.x - 1 < 0)
             {
-                if(newPos.id - 1 < 0)
+                if(boardsWrapper.boards.count > 0)
                 {
-                    newPos.id = boardsWrapper.boards.count - 1;
-                }
-                else {
-                    newPos.id -= 1;
-                }
-            }
-            newPos.x = 19
-        }
-        else
-        {
-            newPos.x -= 1
-        }
-        if(newPos.y + 1 > 19)
-        {
-            if(boardsWrapper.boards.count > 2)
-            {
-                if(newPos.id / 2 == 0)
-                {
-                    if(((newPos.id == 1) && (boardsWrapper.boards.count > 3)) || ((newPos.id == 0) && (boardsWrapper.boards.count > 2)))
+                    if(newPlayer.id - 1 < 0)
                     {
-                        newPos.id += 2
+                        newPlayer.id = boardsWrapper.boards.count - 1;
+                    }
+                    else {
+                        newPlayer.id -= 1;
                     }
                 }
-                else if(newPos.id / 2 == 1)
-                {
-                    newPos.id -= 2
-                }
-                newPos.y = 19
+                newPlayer.x = 19
             }
+            else
+            {
+                newPlayer.x -= 1
+            }
+            if(newPlayer.y + 1 > 19)
+            {
+                if(boardsWrapper.boards.count > 2)
+                {
+                    if(newPlayer.id / 2 == 0)
+                    {
+                        if(((newPlayer.id == 1) && (boardsWrapper.boards.count > 3)) || ((newPlayer.id == 0) && (boardsWrapper.boards.count > 2)))
+                        {
+                            newPlayer.id += 2
+                        }
+                    }
+                    else if(newPlayer.id / 2 == 1)
+                    {
+                        newPlayer.id -= 2
+                    }
+                    newPlayer.y = 19
+                }
+            }
+            else
+            {
+                newPlayer.y += 1
+            }
+            
+            makeMove(player: newPlayer)
         }
-        else
-        {
-            newPos.y += 1
-        }
-
-        makeMove(position: newPos, vertical: false)
     }
     
     func leftUpButton()
     {
-        var newPos : player = playerWrapper.playerPos[localPlayerId]
-        if(newPos.x - 1 < 0)
+        if(localPlayerId == playerWrapper.playerId)
         {
-            if(boardsWrapper.boards.count > 0)
+            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
+            if(newPlayer.x - 1 < 0)
             {
-                if(newPos.id - 1 < 0)
+                if(boardsWrapper.boards.count > 0)
                 {
-                    newPos.id = boardsWrapper.boards.count - 1;
-                }
-                else {
-                    newPos.id -= 1;
-                }
-            }
-            newPos.x = 19
-        }
-        else
-        {
-            newPos.x -= 1
-        }
-        if(newPos.y - 1 < 0)
-        {
-            if(boardsWrapper.boards.count > 2)
-            {
-                if(newPos.id / 2 == 0)
-                {
-                    if(((newPos.id == 1) && (boardsWrapper.boards.count > 3)) || ((newPos.id == 0) && (boardsWrapper.boards.count > 2)))
+                    if(newPlayer.id - 1 < 0)
                     {
-                        newPos.id += 2
+                        newPlayer.id = boardsWrapper.boards.count - 1;
+                    }
+                    else {
+                        newPlayer.id -= 1;
                     }
                 }
-                else if(newPos.id / 2 == 1)
-                {
-                    newPos.id -= 2
-                }
-                newPos.y = 0
+                newPlayer.x = 19
             }
+            else
+            {
+                newPlayer.x -= 1
+            }
+            if(newPlayer.y - 1 < 0)
+            {
+                if(boardsWrapper.boards.count > 2)
+                {
+                    if(newPlayer.id / 2 == 0)
+                    {
+                        if(((newPlayer.id == 1) && (boardsWrapper.boards.count > 3)) || ((newPlayer.id == 0) && (boardsWrapper.boards.count > 2)))
+                        {
+                            newPlayer.id += 2
+                        }
+                    }
+                    else if(newPlayer.id / 2 == 1)
+                    {
+                        newPlayer.id -= 2
+                    }
+                    newPlayer.y = 0
+                }
+            }
+            else
+            {
+                newPlayer.y -= 1
+            }
+            makeMove(player: newPlayer)
         }
-        else
-        {
-            newPos.y -= 1
-        }
-        makeMove(position: newPos, vertical: false)
     }
     
     func rightDownButton()
     {
-        var newPos : player = playerWrapper.playerPos[localPlayerId]
-        if(newPos.x + 1 > 19)
+        if(localPlayerId == playerWrapper.playerId)
         {
-            if(boardsWrapper.boards.count > 0)
+            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
+            if(newPlayer.x + 1 > 19)
             {
-                if(newPos.id + 1 >= boardsWrapper.boards.count)
+                if(boardsWrapper.boards.count > 0)
                 {
-                    newPos.id = 0;
-                }
-                else {
-                    newPos.id += 1;
-                }
-            }
-            newPos.x = 0
-        }
-        else
-        {
-            newPos.x += 1
-        }
-        if(newPos.y + 1 > 19)
-        {
-            if(boardsWrapper.boards.count > 2)
-            {
-                if(newPos.id / 2 == 0)
-                {
-                    if(((newPos.id == 1) && (boardsWrapper.boards.count > 3)) || ((newPos.id == 0) && (boardsWrapper.boards.count > 2)))
+                    if(newPlayer.id + 1 >= boardsWrapper.boards.count)
                     {
-                        newPos.id += 2
+                        newPlayer.id = 0;
+                    }
+                    else {
+                        newPlayer.id += 1;
                     }
                 }
-                else if(newPos.id / 2 == 1)
-                {
-                    newPos.id -= 2
-                }
-                newPos.y = 19
+                newPlayer.x = 0
             }
+            else
+            {
+                newPlayer.x += 1
+            }
+            if(newPlayer.y + 1 > 19)
+            {
+                if(boardsWrapper.boards.count > 2)
+                {
+                    if(newPlayer.id / 2 == 0)
+                    {
+                        if(((newPlayer.id == 1) && (boardsWrapper.boards.count > 3)) || ((newPlayer.id == 0) && (boardsWrapper.boards.count > 2)))
+                        {
+                            newPlayer.id += 2
+                        }
+                    }
+                    else if(newPlayer.id / 2 == 1)
+                    {
+                        newPlayer.id -= 2
+                    }
+                    newPlayer.y = 19
+                }
+            }
+            else
+            {
+                newPlayer.y += 1
+            }
+            makeMove(player: newPlayer)
         }
-        else
-        {
-            newPos.y += 1
-        }
-        makeMove(position: newPos, vertical: false)
     }
     
     func rightUpButton()
     {
-        var newPos : player = playerWrapper.playerPos[localPlayerId]
-        if(newPos.x + 1 > 19)
+        if(localPlayerId == playerWrapper.playerId)
         {
-            if(boardsWrapper.boards.count > 0)
+            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
+            if(newPlayer.x + 1 > 19)
             {
-                if(newPos.id + 1 >= boardsWrapper.boards.count)
+                if(boardsWrapper.boards.count > 0)
                 {
-                    newPos.id = 0;
-                }
-                else {
-                    newPos.id += 1;
-                }
-            }
-            newPos.x = 0
-        }
-        else
-        {
-            newPos.x += 1
-        }
-        if(newPos.y - 1 < 0)
-        {
-            if(boardsWrapper.boards.count > 2)
-            {
-                if(newPos.id / 2 == 0)
-                {
-                    if(((newPos.id == 1) && (boardsWrapper.boards.count > 3)) || ((newPos.id == 0) && (boardsWrapper.boards.count > 2)))
+                    if(newPlayer.id + 1 >= boardsWrapper.boards.count)
                     {
-                        newPos.id += 2
+                        newPlayer.id = 0;
+                    }
+                    else {
+                        newPlayer.id += 1;
                     }
                 }
-                else if(newPos.id / 2 == 1)
-                {
-                    newPos.id -= 2
-                }
-                newPos.y = 0
+                newPlayer.x = 0
             }
+            else
+            {
+                newPlayer.x += 1
+            }
+            if(newPlayer.y - 1 < 0)
+            {
+                if(boardsWrapper.boards.count > 2)
+                {
+                    if(newPlayer.id / 2 == 0)
+                    {
+                        if(((newPlayer.id == 1) && (boardsWrapper.boards.count > 3)) || ((newPlayer.id == 0) && (boardsWrapper.boards.count > 2)))
+                        {
+                            newPlayer.id += 2
+                        }
+                    }
+                    else if(newPlayer.id / 2 == 1)
+                    {
+                        newPlayer.id -= 2
+                    }
+                    newPlayer.y = 0
+                }
+            }
+            else
+            {
+                newPlayer.y -= 1
+            }
+            makeMove(player: newPlayer)
         }
-        else
-        {
-            newPos.y -= 1
-        }
-        makeMove(position: newPos, vertical: false)
     }
     
     func checkMove(position : player) -> Bool
@@ -401,60 +425,84 @@ class GameScene: SKScene {
         }
     }
     
-    func makeMove(position : player, vertical : Bool)
+    func makeMove(player : player)
     {
-        if(checkMove(position: position))
+        if(checkMove(position: player))
         {
-            if(boardsWrapper.boards[position.id].matrix[position.x][position.y] == 6)
+            if(boardsWrapper.boards[player.id].matrix[player.x][player.y] == 6)
             {
-                let refreshAlert2 = UIAlertController(title: "Uwaga", message: "Wszedłeś na minę. Koniec gry!", preferredStyle: UIAlertControllerStyle.alert)
-                
-                refreshAlert2.addAction(UIAlertAction(title: "Ok", style: .default, handler: { (action: UIAlertAction!) in
-                    self.buttonLeft.removeFromSuperview()
-                    self.buttonRight.removeFromSuperview()
-                    self.buttonDown.removeFromSuperview()
-                    self.buttonUp.removeFromSuperview()
-                    self.buttonLeftDown.removeFromSuperview()
-                    self.buttonLeftUp.removeFromSuperview()
-                    self.buttonRightDown.removeFromSuperview()
-                    self.buttonRightUp.removeFromSuperview()
-                }))
-                
-                self.view?.window?.rootViewController?.present(refreshAlert2, animated: true, completion: nil)
+                if(localPlayerId == playerWrapper.playerId)
+                {
+                    let refreshAlert2 = UIAlertController(title: "Uwaga", message: "Wszedłeś na minę. Koniec gry!", preferredStyle: UIAlertControllerStyle.alert)
+                    
+                    refreshAlert2.addAction(UIAlertAction(title: "Ok", style: .default, handler: { (action: UIAlertAction!) in
+                        self.buttonLeft.removeFromSuperview()
+                        self.buttonRight.removeFromSuperview()
+                        self.buttonDown.removeFromSuperview()
+                        self.buttonUp.removeFromSuperview()
+                        self.buttonLeftDown.removeFromSuperview()
+                        self.buttonLeftUp.removeFromSuperview()
+                        self.buttonRightDown.removeFromSuperview()
+                        self.buttonRightUp.removeFromSuperview()
+                    }))
+                    
+                    self.view?.window?.rootViewController?.present(refreshAlert2, animated: true, completion: nil)
+                } else {
+                    boardsWrapper.boards[playerWrapper.playerPos[playerWrapper.playerId].id].matrix[playerWrapper.playerPos[playerWrapper.playerId].x][playerWrapper.playerPos[playerWrapper.playerId].y] = 0
+                    playerWrapper.playerPos.remove(at: playerWrapper.playerId)
+                }
             }
-            else if(boardsWrapper.boards[position.id].matrix[position.x][position.y] == 7)
+            else if(boardsWrapper.boards[player.id].matrix[player.x][player.y] == 7)
             {
-                let refreshAlert = UIAlertController(title: "Uwaga", message: "Znalazłeś skarb. Wygrałeś!", preferredStyle: UIAlertControllerStyle.alert)
-                
-                refreshAlert.addAction(UIAlertAction(title: "Ok", style: .default, handler: { (action: UIAlertAction!) in
-                    self.buttonLeft.removeFromSuperview()
-                    self.buttonRight.removeFromSuperview()
-                    self.buttonDown.removeFromSuperview()
-                    self.buttonUp.removeFromSuperview()
-                    self.buttonLeftDown.removeFromSuperview()
-                    self.buttonLeftUp.removeFromSuperview()
-                    self.buttonRightDown.removeFromSuperview()
-                    self.buttonRightUp.removeFromSuperview()
-                }))
-                
-                self.view?.window?.rootViewController?.present(refreshAlert, animated: true, completion: nil)
+                if(localPlayerId == playerWrapper.playerId)
+                {
+                    let refreshAlert = UIAlertController(title: "Uwaga", message: "Znalazłeś skarb. Wygrałeś!", preferredStyle: UIAlertControllerStyle.alert)
+                    
+                    refreshAlert.addAction(UIAlertAction(title: "Ok", style: .default, handler: { (action: UIAlertAction!) in
+                        self.buttonLeft.removeFromSuperview()
+                        self.buttonRight.removeFromSuperview()
+                        self.buttonDown.removeFromSuperview()
+                        self.buttonUp.removeFromSuperview()
+                        self.buttonLeftDown.removeFromSuperview()
+                        self.buttonLeftUp.removeFromSuperview()
+                        self.buttonRightDown.removeFromSuperview()
+                        self.buttonRightUp.removeFromSuperview()
+                    }))
+                    
+                    self.view?.window?.rootViewController?.present(refreshAlert, animated: true, completion: nil)
+                } else {
+                    let refreshAlert = UIAlertController(title: "Uwaga", message: "Gracz nr \(playerWrapper.playerId+1) znalazł skarb! Przegrałeś!", preferredStyle: UIAlertControllerStyle.alert)
+                    
+                    refreshAlert.addAction(UIAlertAction(title: "Ok", style: .default, handler: { (action: UIAlertAction!) in
+                        self.buttonLeft.removeFromSuperview()
+                        self.buttonRight.removeFromSuperview()
+                        self.buttonDown.removeFromSuperview()
+                        self.buttonUp.removeFromSuperview()
+                        self.buttonLeftDown.removeFromSuperview()
+                        self.buttonLeftUp.removeFromSuperview()
+                        self.buttonRightDown.removeFromSuperview()
+                        self.buttonRightUp.removeFromSuperview()
+                    }))
+                    
+                    self.view?.window?.rootViewController?.present(refreshAlert, animated: true, completion: nil)
+                }
             }
             else
             {
                 // zmiana pozycji w tablicy
-                boardsWrapper.boards[playerWrapper.playerPos[playerId].id].matrix[playerWrapper.playerPos[playerId].x][playerWrapper.playerPos[playerId].y] = 0
-                playerWrapper.playerPos[playerId] = position
-                boardsWrapper.boards[position.id].matrix[position.x][position.y] = playerId + 1
-                if(localPlayerId == playerId)
+                boardsWrapper.boards[playerWrapper.playerPos[playerWrapper.playerId].id].matrix[playerWrapper.playerPos[playerWrapper.playerId].x][playerWrapper.playerPos[playerWrapper.playerId].y] = 0
+                playerWrapper.playerPos[playerWrapper.playerId] = player
+                boardsWrapper.boards[player.id].matrix[player.x][player.y] = playerWrapper.playerId + 1
+                if(localPlayerId == playerWrapper.playerId)
                 {
                     // odkrycie nowych pól
                     var matrixEnable : [[pos]] = []
-                    for i in (position.x-1..<position.x+2)
+                    for i in (player.x-1..<player.x+2)
                     {
                         var matrixLine : [pos] = []
-                        for j in (position.y-1..<position.y+2)
+                        for j in (player.y-1..<player.y+2)
                         {
-                            matrixLine.append(pos(id: position.id, x: i, y: j))
+                            matrixLine.append(pos(id: player.id, x: i, y: j))
                         }
                         matrixEnable.append(matrixLine)
                     }
@@ -463,12 +511,12 @@ class GameScene: SKScene {
                     {
                         if(boardsWrapper.boards.count > 0)
                         {
-                            if(position.id - 1 < 0)
+                            if(player.id - 1 < 0)
                             {
                                 boardId = boardsWrapper.boards.count - 1;
                             }
                             else {
-                                boardId = position.id - 1;
+                                boardId = player.id - 1;
                             }
                         }
                         for i in (0..<3)
@@ -487,16 +535,16 @@ class GameScene: SKScene {
                     {
                         if(boardsWrapper.boards.count > 2)
                         {
-                            if(position.id  / 2 == 0)
+                            if(player.id  / 2 == 0)
                             {
-                                if(((position.id  == 1) && (boardsWrapper.boards.count > 3)) || ((position.id  == 0) && (boardsWrapper.boards.count > 2)))
+                                if(((player.id  == 1) && (boardsWrapper.boards.count > 3)) || ((player.id  == 0) && (boardsWrapper.boards.count > 2)))
                                 {
-                                    boardId = position.id + 2
+                                    boardId = player.id + 2
                                 }
                             }
-                            else if(position.id  / 2 == 1)
+                            else if(player.id  / 2 == 1)
                             {
-                                boardId = position.id - 2
+                                boardId = player.id - 2
                             }
                         }
                         for i in (0..<3)
@@ -515,12 +563,12 @@ class GameScene: SKScene {
                     {
                         if(boardsWrapper.boards.count > 0)
                         {
-                            if(position.id + 1 >= boardsWrapper.boards.count)
+                            if(player.id + 1 >= boardsWrapper.boards.count)
                             {
                                 boardId = 0;
                             }
                             else {
-                                boardId = position.id + 1;
+                                boardId = player.id + 1;
                             }
                         }
                         for i in (0..<3)
@@ -537,16 +585,16 @@ class GameScene: SKScene {
                     }
                     if(position.y == 19)
                     {
-                        if(position.id / 2 == 0)
+                        if(player.id / 2 == 0)
                         {
-                            if(((position.id == 1) && (boardsWrapper.boards.count > 3)) || ((position.id == 0) && (boardsWrapper.boards.count > 2)))
+                            if(((player.id == 1) && (boardsWrapper.boards.count > 3)) || ((player.id == 0) && (boardsWrapper.boards.count > 2)))
                             {
-                                boardId = position.id + 2
+                                boardId = player.id + 2
                             }
                         }
-                        else if(position.id / 2 == 1)
+                        else if(player.id / 2 == 1)
                         {
-                            boardId = position.id - 2
+                            boardId = player.id - 2
                         }
                         for i in (0..<3)
                         {
@@ -637,6 +685,12 @@ class GameScene: SKScene {
                 drawCompass(angle: calculateCompass() )
             }
         }
+        if(playerWrapper.playerId + 1 >= playerWrapper.playerPos.count)
+        {
+            playerWrapper.playerId = 0
+        } else {
+            playerWrapper.playerId += 1
+        }
     }
     
     func connectButton()
@@ -698,180 +752,206 @@ class GameScene: SKScene {
             message["randomQueue"] = queue as AnyObject?
             client.sendData(params: message)
         }
-        connecting = true
+        gameState = 1
     }
     
     override func update(_ currentTime: TimeInterval) {
-        if(!appStarted)
-        {
-            sender = TCPListener(port: 51210, players: playerWrapper, boards: boardsWrapper, scene: self)
-            appStarted = true
-            
-            labelIp = SKLabelNode(fontNamed: "Arial")
-            labelIp?.text = String(getWiFiAddress()! + ":51210")
-            labelIp?.fontSize = 20
-            labelIp?.fontColor = UIColor.white
-            labelIp?.position = CGPoint(x: -Int(self.size.width*0.48) + 100, y:  -250 + Int(self.size.height*0.5))
-            self.addChild(labelIp!)
-            
-            ip1 = UITextField(frame: CGRect(x: 30, y: 100, width: 200, height: 30))
-            ip1.placeholder = "IP1"
-            ip1.text = "192.168.0.11"
-            ip1.font = UIFont.systemFont(ofSize: 15)
-            ip1.borderStyle = UITextBorderStyle.roundedRect
-            ip1.autocorrectionType = UITextAutocorrectionType.no
-            ip1.keyboardType = UIKeyboardType.default
-            ip1.returnKeyType = UIReturnKeyType.done
-            ip1.clearButtonMode = UITextFieldViewMode.whileEditing;
-            ip1.contentVerticalAlignment = UIControlContentVerticalAlignment.center
-            self.view?.addSubview(ip1)
-            
-            port1 = UITextField(frame: CGRect(x: 250, y: 100, width: 100, height: 30))
-            port1.placeholder = "PORT1"
-            port1.text = "51210"
-            port1.font = UIFont.systemFont(ofSize: 15)
-            port1.borderStyle = UITextBorderStyle.roundedRect
-            port1.autocorrectionType = UITextAutocorrectionType.no
-            port1.keyboardType = UIKeyboardType.default
-            port1.returnKeyType = UIReturnKeyType.done
-            port1.clearButtonMode = UITextFieldViewMode.whileEditing;
-            port1.contentVerticalAlignment = UIControlContentVerticalAlignment.center
-            self.view?.addSubview(port1)
-            
-            ip2 = UITextField(frame: CGRect(x: 30, y: 150, width: 200, height: 30))
-            ip2.placeholder = "IP2"
-            ip2.font = UIFont.systemFont(ofSize: 15)
-            ip2.borderStyle = UITextBorderStyle.roundedRect
-            ip2.autocorrectionType = UITextAutocorrectionType.no
-            ip2.keyboardType = UIKeyboardType.default
-            ip2.returnKeyType = UIReturnKeyType.done
-            ip2.clearButtonMode = UITextFieldViewMode.whileEditing;
-            ip2.contentVerticalAlignment = UIControlContentVerticalAlignment.center
-            self.view?.addSubview(ip2)
-            
-            port2 = UITextField(frame: CGRect(x: 250, y: 150, width: 100, height: 30))
-            port2.placeholder = "PORT2"
-            port2.font = UIFont.systemFont(ofSize: 15)
-            port2.borderStyle = UITextBorderStyle.roundedRect
-            port2.autocorrectionType = UITextAutocorrectionType.no
-            port2.keyboardType = UIKeyboardType.default
-            port2.returnKeyType = UIReturnKeyType.done
-            port2.clearButtonMode = UITextFieldViewMode.whileEditing;
-            port2.contentVerticalAlignment = UIControlContentVerticalAlignment.center
-            self.view?.addSubview(port2)
-            
-            ip3 = UITextField(frame: CGRect(x: 30, y: 200, width: 200, height: 30))
-            ip3.placeholder = "IP3"
-            ip3.font = UIFont.systemFont(ofSize: 15)
-            ip3.borderStyle = UITextBorderStyle.roundedRect
-            ip3.autocorrectionType = UITextAutocorrectionType.no
-            ip3.keyboardType = UIKeyboardType.default
-            ip3.returnKeyType = UIReturnKeyType.done
-            ip3.clearButtonMode = UITextFieldViewMode.whileEditing;
-            ip3.contentVerticalAlignment = UIControlContentVerticalAlignment.center
-            self.view?.addSubview(ip3)
-            
-            port3 = UITextField(frame: CGRect(x: 250, y: 200, width: 100, height: 30))
-            port3.placeholder = "PORT3"
-            port3.font = UIFont.systemFont(ofSize: 15)
-            port3.borderStyle = UITextBorderStyle.roundedRect
-            port3.autocorrectionType = UITextAutocorrectionType.no
-            port3.keyboardType = UIKeyboardType.default
-            port3.returnKeyType = UIReturnKeyType.done
-            port3.clearButtonMode = UITextFieldViewMode.whileEditing;
-            port3.contentVerticalAlignment = UIControlContentVerticalAlignment.center
-            self.view?.addSubview(port3)
-            
-            boardsWrapper.boards.append(BoardModel(scene: self, initializeFields: true))
-            playerWrapper.playerPos.append(player(ip: getWiFiAddress()!, lossNumber: boardsWrapper.boards[boardsWrapper.boards.count - 1].lossNumber, sender: TCPSender(), id: 0, x: 9, y: 9))
-            
-            connect = UIButton(frame: CGRect(x: 30, y: 250, width: 100, height: 50))
-            connect.setTitle("Połącz", for: .normal)
-            connect.addTarget(self, action: #selector(connectButton), for: .touchUpInside)
-            self.view?.addSubview(connect)
-        }
-        if(connecting)
-        {
-            if(self.countOfPlayers == boardsWrapper.boards.count)
+        switch gameState {
+        case 0:
+            if(!appLoaded)
             {
-                if(playerWrapper.playerPos.count > 1)
+                self.sender = TCPListener(port: 51210, players: self.playerWrapper, boards: self.boardsWrapper, scene: self)
+                self.appLoaded = true
+                
+                self.labelIp = SKLabelNode(fontNamed: "Arial")
+                self.labelIp?.text = String(self.getWiFiAddress()! + ":51210")
+                self.labelIp?.fontSize = 20
+                self.labelIp?.fontColor = UIColor.white
+                self.labelIp?.position = CGPoint(x: -Int(self.size.width*0.48) + 100, y:  -250 + Int(self.size.height*0.5))
+                self.addChild(self.labelIp!)
+                
+                self.ip1 = UITextField(frame: CGRect(x: 30, y: 100, width: 200, height: 30))
+                self.ip1.placeholder = "IP1"
+                self.ip1.text = "192.168.0.11"
+                self.ip1.font = UIFont.systemFont(ofSize: 15)
+                self.ip1.borderStyle = UITextBorderStyle.roundedRect
+                self.ip1.autocorrectionType = UITextAutocorrectionType.no
+                self.ip1.keyboardType = UIKeyboardType.default
+                self.ip1.returnKeyType = UIReturnKeyType.done
+                self.ip1.clearButtonMode = UITextFieldViewMode.whileEditing;
+                self.ip1.contentVerticalAlignment = UIControlContentVerticalAlignment.center
+                self.view?.addSubview(self.ip1)
+                
+                self.port1 = UITextField(frame: CGRect(x: 250, y: 100, width: 100, height: 30))
+                self.port1.placeholder = "PORT1"
+                self.port1.text = "51210"
+                self.port1.font = UIFont.systemFont(ofSize: 15)
+                self.port1.borderStyle = UITextBorderStyle.roundedRect
+                self.port1.autocorrectionType = UITextAutocorrectionType.no
+                self.port1.keyboardType = UIKeyboardType.default
+                self.port1.returnKeyType = UIReturnKeyType.done
+                self.port1.clearButtonMode = UITextFieldViewMode.whileEditing;
+                self.port1.contentVerticalAlignment = UIControlContentVerticalAlignment.center
+                self.view?.addSubview(self.port1)
+                
+                self.ip2 = UITextField(frame: CGRect(x: 30, y: 150, width: 200, height: 30))
+                self.ip2.placeholder = "IP2"
+                self.ip2.font = UIFont.systemFont(ofSize: 15)
+                self.ip2.borderStyle = UITextBorderStyle.roundedRect
+                self.ip2.autocorrectionType = UITextAutocorrectionType.no
+                self.ip2.keyboardType = UIKeyboardType.default
+                self.ip2.returnKeyType = UIReturnKeyType.done
+                self.ip2.clearButtonMode = UITextFieldViewMode.whileEditing;
+                self.ip2.contentVerticalAlignment = UIControlContentVerticalAlignment.center
+                self.view?.addSubview(self.ip2)
+                
+                self.port2 = UITextField(frame: CGRect(x: 250, y: 150, width: 100, height: 30))
+                self.port2.placeholder = "PORT2"
+                self.port2.font = UIFont.systemFont(ofSize: 15)
+                self.port2.borderStyle = UITextBorderStyle.roundedRect
+                self.port2.autocorrectionType = UITextAutocorrectionType.no
+                self.port2.keyboardType = UIKeyboardType.default
+                self.port2.returnKeyType = UIReturnKeyType.done
+                self.port2.clearButtonMode = UITextFieldViewMode.whileEditing;
+                self.port2.contentVerticalAlignment = UIControlContentVerticalAlignment.center
+                self.view?.addSubview(self.port2)
+                
+                self.ip3 = UITextField(frame: CGRect(x: 30, y: 200, width: 200, height: 30))
+                self.ip3.placeholder = "IP3"
+                self.ip3.font = UIFont.systemFont(ofSize: 15)
+                self.ip3.borderStyle = UITextBorderStyle.roundedRect
+                self.ip3.autocorrectionType = UITextAutocorrectionType.no
+                self.ip3.keyboardType = UIKeyboardType.default
+                self.ip3.returnKeyType = UIReturnKeyType.done
+                self.ip3.clearButtonMode = UITextFieldViewMode.whileEditing;
+                self.ip3.contentVerticalAlignment = UIControlContentVerticalAlignment.center
+                self.view?.addSubview(self.ip3)
+                
+                self.port3 = UITextField(frame: CGRect(x: 250, y: 200, width: 100, height: 30))
+                self.port3.placeholder = "PORT3"
+                self.port3.font = UIFont.systemFont(ofSize: 15)
+                self.port3.borderStyle = UITextBorderStyle.roundedRect
+                self.port3.autocorrectionType = UITextAutocorrectionType.no
+                self.port3.keyboardType = UIKeyboardType.default
+                self.port3.returnKeyType = UIReturnKeyType.done
+                self.port3.clearButtonMode = UITextFieldViewMode.whileEditing;
+                self.port3.contentVerticalAlignment = UIControlContentVerticalAlignment.center
+                self.view?.addSubview(self.port3)
+                
+                self.boardsWrapper.boards.append(BoardModel(scene: self, initializeFields: true))
+                self.playerWrapper.playerPos.append(player(ip: self.getWiFiAddress()!, lossNumber: self.boardsWrapper.boards[self.boardsWrapper.boards.count - 1].lossNumber, sender: TCPSender(), id: 0, x: 9, y: 9))
+                
+                self.connect = UIButton(frame: CGRect(x: 30, y: 250, width: 100, height: 50))
+                self.connect.setTitle("Połącz", for: .normal)
+                self.connect.addTarget(self, action: #selector(self.connectButton), for: .touchUpInside)
+                self.view?.addSubview(self.connect)
+            }
+            break
+        case 1:
+            switch initializingGameState {
+            case 0:
+                if(self.countOfPlayers == boardsWrapper.boards.count)
                 {
-                    // gdy wszystkie roundQueue dotarły
-                    if((playerWrapper.playerPos.count == boardsWrapper.boards.count) && !gameSetup)
+                    if(playerWrapper.playerPos.count > 1)
                     {
-                        // gdy jest wiecej niz jeden gracz
-                        for i in (0..<playerWrapper.playerPos.count)
+                        // gdy wszystkie roundQueue dotarły
+                        if(playerWrapper.playerPos.count == boardsWrapper.boards.count)
                         {
-                            for j in (0..<boardsWrapper.boards.count)
+                            // gdy jest wiecej niz jeden gracz
+                            for i in (0..<playerWrapper.playerPos.count)
                             {
-                                if(boardsWrapper.boards[j].ip == playerWrapper.playerPos[i].ip)
+                                for j in (0..<boardsWrapper.boards.count)
                                 {
-                                    playerWrapper.playerPos[i].lossNumber = boardsWrapper.boards[j].lossNumber
+                                    if(boardsWrapper.boards[j].ip == playerWrapper.playerPos[i].ip)
+                                    {
+                                        playerWrapper.playerPos[i].lossNumber = boardsWrapper.boards[j].lossNumber
+                                    }
                                 }
                             }
+                            
+                            // sortowanie klas
+                            boardsWrapper.boards.sort(by: { $0.lossNumber > $1.lossNumber })
+                            playerWrapper.playerPos.sort(by: { $0.lossNumber > $1.lossNumber })
+                            
+                            //ustawienie wartosci id
+                            for i in (0..<playerWrapper.playerPos.count)
+                            {
+                                playerWrapper.playerPos[i].id = i
+                            }
+                            localPlayerId = self.getLocalIdPlayer()
+                            
+                            for i in (0..<playerWrapper.playerPos.count)
+                            {
+                                if(i != localPlayerId)
+                                {
+                                    playerWrapper.playerPos[i].sender.sendData(params: boardsWrapper.boards[localPlayerId].genereteMinesBuildingDictionary(id: localPlayerId))
+                                }
+                            }
+                            initializingGameState = 1
                         }
-                        
-                        // sortowanie klas
-                        boardsWrapper.boards.sorted(by: { $0.lossNumber > $1.lossNumber })
-                        playerWrapper.playerPos.sorted(by: { $0.lossNumber > $1.lossNumber })
-                        
-                        //ustawienie wartosci id
-                        for i in (0..<playerWrapper.playerPos.count)
-                        {
-                            playerWrapper.playerPos[i].id = i
-                        }
-                        localPlayerId = self.getLocalIdPlayer()
-                        
+                    }
+                }
+                break
+            case 1:
+                // roundQueue i map przesłane, decyzja  odnośnie treasure
+                if(sender.initialsMap == boardsWrapper.boards.count)
+                {
+                    // jeśli tak, wylosuj i roześlij do innych graczy treausre
+                    if(localPlayerId == 0)
+                    {
                         for i in (0..<playerWrapper.playerPos.count)
                         {
                             if(i != localPlayerId)
                             {
-                                let dd = boardsWrapper.boards[localPlayerId].genereteMinesBuildingDictionary(id: localPlayerId)
-                                playerWrapper.playerPos[i].sender.sendData(params: dd)
+                                boardsWrapper.treasurePos = generateTreasurePos()
+                                playerWrapper.playerPos[i].sender.sendData(params: prepareTreasureToSendJSON())
                             }
                         }
-                        
-                        gameSetup = true
+                        initializingGameState = 2
+                    }
+                    
+                    // jeśli nie, to oczekuj na pakiet i idz dalej
+                    if(localPlayerId != 0 )
+                    {
+                        if(boardsWrapper.tresurePacketAnalysed)
+                        {
+                            boardsWrapper.tresurePacketAnalysed = false
+                            initializingGameState = 2
+                        }
                     }
                 }
-                if(sender.initialsMap == boardsWrapper.boards.count)
+                break
+            case 2:
+                // zakonczono ładowanie elementów, uruchom grę
+                self.removeAllChildren()
+                for i in(0..<boardsWrapper.boards.count)
                 {
-                    self.removeAllChildren()
-                    // wyślij wszystkim mapy
-                    if(playerWrapper.playerPos.count > 1)
+                    if(i == 0)
                     {
-                        // gdy jest wiecej niz jeden gracz
-                        
+                        boardsWrapper.boards[i].setXY(x: 0, y: -350)
                     }
-                    connecting = false
-                    gameInitialized = false
-                    for i in(0..<boardsWrapper.boards.count)
+                    else if(i == 1)
                     {
-                        if(i == 0)
-                        {
-                            boardsWrapper.boards[i].setXY(x: 0, y: -350)
-                        }
-                        else if(i == 1)
-                        {
-                            boardsWrapper.boards[i].setXY(x: 370, y: -350)
-                        }
-                        else if(i == 2)
-                        {
-                            boardsWrapper.boards[i].setXY(x: 0, y: -700)
-                        }
-                        else if(i == 3)
-                        {
-                            boardsWrapper.boards[i].setXY(x: 370, y: -700)
-                        }
-                        boardsWrapper.boards[i].renderBoard()
+                        boardsWrapper.boards[i].setXY(x: 370, y: -350)
                     }
-                    drawCompass(angle: calculateCompass() )
+                    else if(i == 2)
+                    {
+                        boardsWrapper.boards[i].setXY(x: 0, y: -700)
+                    }
+                    else if(i == 3)
+                    {
+                        boardsWrapper.boards[i].setXY(x: 370, y: -700)
+                    }
+                    boardsWrapper.boards[i].renderBoard()
                 }
+                drawCompass(angle: calculateCompass() )
+                gameState = 2
+                break
+            default: break
             }
-        }
-        
-        if(!gameInitialized)
-        {
+            
+            break
+        case 2:
             buttonLeft = UIButton(frame: CGRect(x: 10, y: 80, width: 100, height: 50))
             buttonLeft.setTitle("Lewo", for: .normal)
             buttonLeft.addTarget(self, action: #selector(leftButton), for: .touchUpInside)
@@ -912,25 +992,22 @@ class GameScene: SKScene {
             buttonRightUp.addTarget(self, action: #selector(rightUpButton), for: .touchUpInside)
             self.view?.addSubview(buttonRightUp)
             
-            
-            //boardsWrapper.boards.append(BoardModel(x: 0, y: -350, scene: self))
-            //boardsWrapper.boards.append(BoardModel(x: 370, y: -350, scene: self))
-            //boardsWrapper.boards.append(BoardModel(x: 0, y: -700, scene: self))
-            //boardsWrapper.boards.append(BoardModel(x: 370, y: -700, scene: self))
-            makeMove(position: playerWrapper.playerPos[0], vertical: true)
-            
+            for i in (0..<playerWrapper.playerPos.count)
+            {
+                makeMove(player: playerWrapper.playerPos[i])
+            }
             drawCompass(angle: 0)
             
-            boardsWrapper.boards[treasurePos.id].matrix[treasurePos.x][treasurePos.y] = 7
-            gameInitialized = true
-            gameRun = true
-        }
-        if(gameRun)
-        {
+            boardsWrapper.boards[boardsWrapper.treasurePos.id].matrix[boardsWrapper.treasurePos.x][boardsWrapper.treasurePos.y] = 7
+            gameState = 3
+            break
+        case 3:
             for i in(0..<boardsWrapper.boards.count)
             {
                 boardsWrapper.boards[i].refreshBoard()
             }
+            break
+        default: break
         }
     }
     
@@ -968,17 +1045,17 @@ class GameScene: SKScene {
     func calculateCompass() -> Float
     {
         var angle : Float = 0
-        if(playerWrapper.playerPos[localPlayerId].id == treasurePos.id)
+        if(playerWrapper.playerPos[localPlayerId].id == boardsWrapper.treasurePos.id)
         {
-            angle = Float(acos((Float(playerWrapper.playerPos[localPlayerId].x - treasurePos.x))/(Float(sqrt(Float(pow((Float(treasurePos.x - playerWrapper.playerPos[localPlayerId].x)), 2) + pow((Float(treasurePos.y - playerWrapper.playerPos[localPlayerId].y)), 2)))))))
-            if(playerWrapper.playerPos[localPlayerId].y < treasurePos.y)
+            angle = Float(acos((Float(playerWrapper.playerPos[localPlayerId].x - boardsWrapper.treasurePos.x))/(Float(sqrt(Float(pow((Float(boardsWrapper.treasurePos.x - playerWrapper.playerPos[localPlayerId].x)), 2) + pow((Float(boardsWrapper.treasurePos.y - playerWrapper.playerPos[localPlayerId].y)), 2)))))))
+            if(playerWrapper.playerPos[localPlayerId].y < boardsWrapper.treasurePos.y)
             {
                 angle = (2 * .pi) - angle
             }
             angle = (angle * 180) / .pi
         } else
         {
-            if(treasurePos.id == 0)
+            if(boardsWrapper.treasurePos.id == 0)
             {
                 if(playerWrapper.playerPos[localPlayerId].id == 1)
                 {
@@ -993,7 +1070,7 @@ class GameScene: SKScene {
                     angle = 180
                 }
             }
-            else if(treasurePos.id == 1)
+            else if(boardsWrapper.treasurePos.id == 1)
             {
                 if(playerWrapper.playerPos[localPlayerId].id == 0)
                 {
@@ -1008,7 +1085,7 @@ class GameScene: SKScene {
                     angle = 90
                 }
             }
-            else if(treasurePos.id == 2)
+            else if(boardsWrapper.treasurePos.id == 2)
             {
                 if(playerWrapper.playerPos[localPlayerId].id == 0)
                 {
@@ -1023,7 +1100,7 @@ class GameScene: SKScene {
                     angle = 0
                 }
             }
-            else if(treasurePos.id == 3)
+            else if(boardsWrapper.treasurePos.id == 3)
             {
                 if(playerWrapper.playerPos[localPlayerId].id == 0)
                 {
@@ -1086,5 +1163,24 @@ class GameScene: SKScene {
         freeifaddrs(ifaddr)
         
         return address
+    }
+    
+    func generateTreasurePos() -> pos
+    {
+        let id: Int = boardsWrapper.boards[0].randomInt(min: 0, max: boardsWrapper.boards.count - 1)
+        let x: Int = boardsWrapper.boards[0].randomInt(min: 0, max: 19)
+        let y: Int = boardsWrapper.boards[0].randomInt(min: 0, max: 19)
+        return pos(id: id, x: x, y: y)
+    }
+    
+    func prepareTreasureToSendJSON() -> Dictionary<String, AnyObject>
+    {
+        var point : Dictionary<String, AnyObject> = [:]
+        var treasure : Dictionary<String, AnyObject> = [:]
+        point["p"] = boardsWrapper.treasurePos.id as AnyObject?
+        point["x"] = boardsWrapper.treasurePos.x as AnyObject?
+        point["y"] = boardsWrapper.treasurePos.y as AnyObject?
+        treasure["treasure"] = point as AnyObject?
+        return treasure
     }
 }
