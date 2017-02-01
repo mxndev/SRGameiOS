@@ -103,9 +103,9 @@ class GameScene: SKScene {
     
     func leftButton()
     {
-        if(localPlayerId == playerWrapper.playerId)
-        {
-            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
+        //if(localPlayerId == playerWrapper.playerId)
+        //{
+            var newPlayer : player = playerWrapper.playerPos[playerWrapper.playerId]
             if(newPlayer.x - 1 < 0)
             {
                 if(boardsWrapper.boards.count > 0)
@@ -125,14 +125,14 @@ class GameScene: SKScene {
                 newPlayer.x -= 1
             }
             makeMove(player: newPlayer, dontSendPos: false, goFuther: true)
-        }
+        //}
     }
     
     func rightButton()
     {
-        if(localPlayerId == playerWrapper.playerId)
-        {
-            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
+        //if(localPlayerId == playerWrapper.playerId)
+        //{
+            var newPlayer : player = playerWrapper.playerPos[playerWrapper.playerId]
             if(newPlayer.x + 1 > 19)
             {
                 if(boardsWrapper.boards.count > 0)
@@ -152,14 +152,14 @@ class GameScene: SKScene {
                 newPlayer.x += 1
             }
             makeMove(player: newPlayer, dontSendPos: false, goFuther: true)
-        }
+        //}
     }
     
     func upButton()
     {
-        if(localPlayerId == playerWrapper.playerId)
-        {
-            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
+        //if(localPlayerId == playerWrapper.playerId)
+        //{
+            var newPlayer : player = playerWrapper.playerPos[playerWrapper.playerId]
             if(newPlayer.y - 1 < 0)
             {
                 if(boardsWrapper.boards.count > 2)
@@ -183,14 +183,14 @@ class GameScene: SKScene {
                 newPlayer.y -= 1
             }
             makeMove(player: newPlayer, dontSendPos: false, goFuther: true)
-        }
+        //}
     }
     
     func downButton()
     {
-        if(localPlayerId == playerWrapper.playerId)
-        {
-            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
+        //if(localPlayerId == playerWrapper.playerId)
+        //{
+            var newPlayer : player = playerWrapper.playerPos[playerWrapper.playerId]
             if(newPlayer.y + 1 > 19)
             {
                 if(boardsWrapper.boards.count > 2)
@@ -214,14 +214,14 @@ class GameScene: SKScene {
                 newPlayer.y += 1
             }
             makeMove(player: newPlayer, dontSendPos: false, goFuther: true)
-        }
+        //}
     }
     
     func leftDownButton()
     {
         if(localPlayerId == playerWrapper.playerId)
         {
-            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
+            var newPlayer : player = playerWrapper.playerPos[playerWrapper.playerId]
             if(newPlayer.x - 1 < 0)
             {
                 if(boardsWrapper.boards.count > 0)
@@ -271,7 +271,7 @@ class GameScene: SKScene {
     {
         if(localPlayerId == playerWrapper.playerId)
         {
-            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
+            var newPlayer : player = playerWrapper.playerPos[playerWrapper.playerId]
             if(newPlayer.x - 1 < 0)
             {
                 if(boardsWrapper.boards.count > 0)
@@ -320,7 +320,7 @@ class GameScene: SKScene {
     {
         if(localPlayerId == playerWrapper.playerId)
         {
-            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
+            var newPlayer : player = playerWrapper.playerPos[playerWrapper.playerId]
             if(newPlayer.x + 1 > 19)
             {
                 if(boardsWrapper.boards.count > 0)
@@ -369,7 +369,7 @@ class GameScene: SKScene {
     {
         if(localPlayerId == playerWrapper.playerId)
         {
-            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
+            var newPlayer : player = playerWrapper.playerPos[playerWrapper.playerId]
             if(newPlayer.x + 1 > 19)
             {
                 if(boardsWrapper.boards.count > 0)
@@ -491,10 +491,13 @@ class GameScene: SKScene {
             {
                 // zmiana pozycji w tablicy
                 boardsWrapper.boards[playerWrapper.playerPos[playerWrapper.playerId].id].matrix[playerWrapper.playerPos[playerWrapper.playerId].x][playerWrapper.playerPos[playerWrapper.playerId].y] = 0
+                print("Clear player position at id:\(playerWrapper.playerPos[playerWrapper.playerId].id) x:\(playerWrapper.playerPos[playerWrapper.playerId].x) y:\(playerWrapper.playerPos[playerWrapper.playerId].y)")
                 playerWrapper.playerPos[playerWrapper.playerId] = player
                 boardsWrapper.boards[player.id].matrix[player.x][player.y] = playerWrapper.playerId + 1
+                print("New player position at id:\(player.id) x:\(player.x) y:\(player.y)")
                 if(localPlayerId == playerWrapper.playerId)
                 {
+                    print("Local player. Discover fields...")
                     // odkrycie nowych pól
                     var matrixEnable : [[pos]] = []
                     for i in (player.x-1..<player.x+2)
@@ -684,24 +687,24 @@ class GameScene: SKScene {
                 }
                 drawCompass(angle: calculateCompass() )
             }
-        }
-        if((localPlayerId == playerWrapper.playerId) && !dontSendPos)
-        {
-            for i in (0..<playerWrapper.playerPos.count)
+            if((localPlayerId == playerWrapper.playerId) && !dontSendPos)
             {
-                if(i != localPlayerId)
+                for i in (0..<playerWrapper.playerPos.count)
                 {
-                    playerWrapper.playerPos[i].sender.sendData(params: preparePlayerToSendJSON())
+                    if(i != localPlayerId)
+                    {
+                        //playerWrapper.playerPos[i].sender.sendData(params: preparePlayerToSendJSON())
+                    }
                 }
             }
-        }
-        if(goFuther)
-        {
-            if(playerWrapper.playerId + 1 >= playerWrapper.playerPos.count)
+            if(goFuther)
             {
-                playerWrapper.playerId = 0
-            } else {
-                playerWrapper.playerId += 1
+                if(playerWrapper.playerId + 1 >= playerWrapper.playerPos.count)
+                {
+                    playerWrapper.playerId = 0
+                } else {
+                    playerWrapper.playerId += 1
+                }
             }
         }
     }
@@ -730,40 +733,46 @@ class GameScene: SKScene {
         {
             self.countOfPlayers += 1
             let client = TCPSender()
-            client.connect(host: ip1.text!, port: port1.text!)
-            playerWrapper.playerPos.append(player(ip: ip1.text!, lossNumber: boardsWrapper.boards[boardsWrapper.boards.count - 1].lossNumber, sender: client, id: 0, x: 9, y: 9))
+            boardsWrapper.boards.append(BoardModel(scene: self, initializeFields: true))
+            //client.connect(host: ip1.text!, port: port1.text!)
+            playerWrapper.playerPos.append(player(ip: "45.678:43", lossNumber: boardsWrapper.boards[boardsWrapper.boards.count - 1].lossNumber, sender: client, id: 0, x: 9, y: 9))
             var queue : Dictionary<String, AnyObject> = [:]
             var message : Dictionary<String, AnyObject> = [:]
             queue["ip"] = playerWrapper.playerPos[localPlayerId].ip as AnyObject?
             queue["number"] = playerWrapper.playerPos[localPlayerId].lossNumber as AnyObject?
             message["randomQueue"] = queue as AnyObject?
-            client.sendData(params: message)
+            //client.sendData(params: message)
+            sender.initialsMap += 1
         }
-        if(ip2.text != "")
+        if(ip2.text == "")
         {
             self.countOfPlayers += 1
             let client = TCPSender()
-            client.connect(host: ip2.text!, port: port2.text!)
-            playerWrapper.playerPos.append(player(ip: ip2.text!, lossNumber: boardsWrapper.boards[boardsWrapper.boards.count - 1].lossNumber, sender: client, id: 0, x: 9, y: 9))
+            boardsWrapper.boards.append(BoardModel(scene: self, initializeFields: true))
+            //client.connect(host: ip2.text!, port: port2.text!)
+            playerWrapper.playerPos.append(player(ip: "45.6783:43", lossNumber: boardsWrapper.boards[boardsWrapper.boards.count - 1].lossNumber, sender: client, id: 0, x: 9, y: 9))
             var queue : Dictionary<String, AnyObject> = [:]
             var message : Dictionary<String, AnyObject> = [:]
             queue["ip"] = playerWrapper.playerPos[localPlayerId].ip as AnyObject?
             queue["number"] = playerWrapper.playerPos[localPlayerId].lossNumber as AnyObject?
             message["randomQueue"] = queue as AnyObject?
-            client.sendData(params: message)
+            //client.sendData(params: message)
+            sender.initialsMap += 1
         }
-        if(ip3.text != "")
+        if(ip3.text == "")
         {
             self.countOfPlayers += 1
             let client = TCPSender()
-            client.connect(host: ip3.text!, port: port3.text!)
-            playerWrapper.playerPos.append(player(ip: ip3.text!, lossNumber: boardsWrapper.boards[boardsWrapper.boards.count - 1].lossNumber, sender: client, id: 0, x: 9, y: 9))
+            boardsWrapper.boards.append(BoardModel(scene: self, initializeFields: true))
+            //client.connect(host: ip3.text!, port: port3.text!)
+            playerWrapper.playerPos.append(player(ip: "45.67832:43", lossNumber: boardsWrapper.boards[boardsWrapper.boards.count - 1].lossNumber, sender: client, id: 0, x: 9, y: 9))
             var queue : Dictionary<String, AnyObject> = [:]
             var message : Dictionary<String, AnyObject> = [:]
             queue["ip"] = playerWrapper.playerPos[localPlayerId].ip as AnyObject?
             queue["number"] = playerWrapper.playerPos[localPlayerId].lossNumber as AnyObject?
             message["randomQueue"] = queue as AnyObject?
-            client.sendData(params: message)
+            //client.sendData(params: message)
+            sender.initialsMap += 1
         }
         gameState = 1
     }
@@ -785,7 +794,7 @@ class GameScene: SKScene {
                 
                 self.ip1 = UITextField(frame: CGRect(x: 30, y: 100, width: 200, height: 30))
                 self.ip1.placeholder = "IP1"
-                self.ip1.text = "192.168.0.11"
+                self.ip1.text = "192.168.1.140"
                 self.ip1.font = UIFont.systemFont(ofSize: 15)
                 self.ip1.borderStyle = UITextBorderStyle.roundedRect
                 self.ip1.autocorrectionType = UITextAutocorrectionType.no
@@ -865,43 +874,40 @@ class GameScene: SKScene {
             case 0:
                 if(self.countOfPlayers == boardsWrapper.boards.count)
                 {
-                    if(playerWrapper.playerPos.count > 1)
+                    // gdy wszystkie roundQueue dotarły
+                    if(playerWrapper.playerPos.count == boardsWrapper.boards.count)
                     {
-                        // gdy wszystkie roundQueue dotarły
-                        if(playerWrapper.playerPos.count == boardsWrapper.boards.count)
+                        // gdy jest wiecej niz jeden gracz
+                        for i in (0..<playerWrapper.playerPos.count)
                         {
-                            // gdy jest wiecej niz jeden gracz
-                            for i in (0..<playerWrapper.playerPos.count)
+                            for j in (0..<boardsWrapper.boards.count)
                             {
-                                for j in (0..<boardsWrapper.boards.count)
+                                if(boardsWrapper.boards[j].ip == playerWrapper.playerPos[i].ip)
                                 {
-                                    if(boardsWrapper.boards[j].ip == playerWrapper.playerPos[i].ip)
-                                    {
-                                        playerWrapper.playerPos[i].lossNumber = boardsWrapper.boards[j].lossNumber
-                                    }
+                                    playerWrapper.playerPos[i].lossNumber = boardsWrapper.boards[j].lossNumber
                                 }
                             }
-                            
-                            // sortowanie klas
-                            boardsWrapper.boards.sort(by: { $0.lossNumber > $1.lossNumber })
-                            playerWrapper.playerPos.sort(by: { $0.lossNumber > $1.lossNumber })
-                            
-                            //ustawienie wartosci id
-                            for i in (0..<playerWrapper.playerPos.count)
-                            {
-                                playerWrapper.playerPos[i].id = i
-                            }
-                            localPlayerId = self.getLocalIdPlayer()
-                            
-                            for i in (0..<playerWrapper.playerPos.count)
-                            {
-                                if(i != localPlayerId)
-                                {
-                                    playerWrapper.playerPos[i].sender.sendData(params: boardsWrapper.boards[localPlayerId].genereteMinesBuildingDictionary(id: localPlayerId))
-                                }
-                            }
-                            initializingGameState = 1
                         }
+                        
+                        // sortowanie klas
+                        boardsWrapper.boards.sort(by: { $0.lossNumber > $1.lossNumber })
+                        playerWrapper.playerPos.sort(by: { $0.lossNumber > $1.lossNumber })
+                        
+                        //ustawienie wartosci id
+                        for i in (0..<playerWrapper.playerPos.count)
+                        {
+                            playerWrapper.playerPos[i].id = i
+                        }
+                        localPlayerId = self.getLocalIdPlayer()
+                        
+                        for i in (0..<playerWrapper.playerPos.count)
+                        {
+                            if(i != localPlayerId)
+                            {
+                                //playerWrapper.playerPos[i].sender.sendData(params: boardsWrapper.boards[localPlayerId].genereteMinesBuildingDictionary(id: localPlayerId))
+                            }
+                        }
+                        initializingGameState = 1
                     }
                 }
                 break
@@ -917,7 +923,7 @@ class GameScene: SKScene {
                             if(i != localPlayerId)
                             {
                                 boardsWrapper.treasurePos = generateTreasurePos()
-                                playerWrapper.playerPos[i].sender.sendData(params: prepareTreasureToSendJSON())
+                               // playerWrapper.playerPos[i].sender.sendData(params: prepareTreasureToSendJSON())
                             }
                         }
                         initializingGameState = 2
@@ -926,11 +932,9 @@ class GameScene: SKScene {
                     // jeśli nie, to oczekuj na pakiet i idz dalej
                     if(localPlayerId != 0 )
                     {
-                        if(boardsWrapper.tresurePacketAnalysed)
-                        {
+                        boardsWrapper.treasurePos = generateTreasurePos()
                             boardsWrapper.tresurePacketAnalysed = false
                             initializingGameState = 2
-                        }
                     }
                 }
                 break
@@ -1106,7 +1110,7 @@ class GameScene: SKScene {
                 }
                 else if(playerWrapper.playerPos[localPlayerId].id == 1)
                 {
-                    angle = 90
+                    angle = 180
                 }
                 else if(playerWrapper.playerPos[localPlayerId].id == 3)
                 {

@@ -141,7 +141,7 @@
 				TargetAttributes = {
 					D030114C1E35A713008EA4F2 = {
 						CreatedOnToolsVersion = 8.2.1;
-						DevelopmentTeam = P757LEMUCG;
+						DevelopmentTeam = 7U9GZVNXL3;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -311,7 +311,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = P757LEMUCG;
+				DEVELOPMENT_TEAM = 7U9GZVNXL3;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
@@ -319,7 +319,7 @@
 				INFOPLIST_FILE = SRGameiOS/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "mxn-dev.SRGameiOS";
+				PRODUCT_BUNDLE_IDENTIFIER = "mxn-dev.SRGameiOS2";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_DISABLE_SAFETY_CHECKS = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "SRGameiOS-Bridging-Header.h";
@@ -331,7 +331,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = P757LEMUCG;
+				DEVELOPMENT_TEAM = 7U9GZVNXL3;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
@@ -339,7 +339,7 @@
 				INFOPLIST_FILE = SRGameiOS/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "mxn-dev.SRGameiOS";
+				PRODUCT_BUNDLE_IDENTIFIER = "mxn-dev.SRGameiOS2";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_DISABLE_SAFETY_CHECKS = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "SRGameiOS-Bridging-Header.h";
