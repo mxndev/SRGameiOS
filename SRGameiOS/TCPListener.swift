@@ -19,6 +19,7 @@ class TCPListener : AnyObject
     var boards : BoardsWrapper = BoardsWrapper(boards: [])
     var gameScene : GameScene
     var initialsMap : Int
+    var runningServer : Bool
     
     init(port : Int32, players : PlayerWrapper, boards : BoardsWrapper, scene : GameScene)
     {
@@ -27,25 +28,28 @@ class TCPListener : AnyObject
         self.players = players
         self.boards = boards
         self.initialsMap = 0
+        runningServer = false
         startServer()
     }
     
     func stopServer() {
+        runningServer = false
         server.close()
     }
     
     func startServer()
     {
+        runningServer = true
         self.server = TCPServer(address: getWiFiAddress()!, port: self.port)
         DispatchQueue.global(qos: .background).async
         {
-            while true
+            while self.runningServer
             {
                 self.server.listen()
                 if let client = self.server.accept()
                 {
                     print("Client connected IP:\(client.address) Port:[\(client.port)]")
-                    while true
+                    while self.runningServer
                     {
                         let test = client.read(1024*10)
                         if(test == nil)
@@ -100,6 +104,14 @@ class TCPListener : AnyObject
             {
                 boards.boards[players.playerPos[players.playerId].id].matrix[players.playerPos[players.playerId].x][players.playerPos[players.playerId].y] = 0
                 players.playerPos.remove(at: players.playerId)
+                if(players.playerPos.count <= players.playerId)
+                {
+                    players.playerId -= 1
+                }
+                if(players.playerId < players.localPlayerId)
+                {
+                    players.localPlayerId -= 1
+                }
             }
             else if(boards.boards[newPlayer.id].matrix[newPlayer.x][newPlayer.y] == 7)
             {

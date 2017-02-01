@@ -27,6 +27,7 @@ struct pos
 class PlayerWrapper {
     var playerPos : [player] = []
     var playerId : Int = 0 // runda gracza
+    var localPlayerId : Int = 0 // lokalny gracz
     
     init(playerPos: [player]) {
         self.playerPos = playerPos
@@ -48,7 +49,6 @@ class GameScene: SKScene {
     private var spinnyNode : SKShapeNode?
     var boardsWrapper : BoardsWrapper = BoardsWrapper(boards: [])
 
-    var localPlayerId : Int = 0 // lokalny gracz
     var gameState : Int = 0 // 0 - ekran wpisywania ip, 1 - ekran łączenia, 2 - inicjalizowanie gry, 3 - tryb gry
     var initializingGameState : Int = 0 // 0 - ustawianie kolejki rundy, 1 - przesłanie map, 3 - generacja skarbu
     var appLoaded : Bool = false
@@ -103,9 +103,9 @@ class GameScene: SKScene {
     
     func leftButton()
     {
-        if(localPlayerId == playerWrapper.playerId)
+        if(playerWrapper.localPlayerId == playerWrapper.playerId)
         {
-            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
+            var newPlayer : player = playerWrapper.playerPos[playerWrapper.localPlayerId]
             if(newPlayer.x - 1 < 0)
             {
                 if(boardsWrapper.boards.count > 0)
@@ -130,9 +130,9 @@ class GameScene: SKScene {
     
     func rightButton()
     {
-        if(localPlayerId == playerWrapper.playerId)
+        if(playerWrapper.localPlayerId == playerWrapper.playerId)
         {
-            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
+            var newPlayer : player = playerWrapper.playerPos[playerWrapper.localPlayerId]
             if(newPlayer.x + 1 > 19)
             {
                 if(boardsWrapper.boards.count > 0)
@@ -157,9 +157,9 @@ class GameScene: SKScene {
     
     func upButton()
     {
-        if(localPlayerId == playerWrapper.playerId)
+        if(playerWrapper.localPlayerId == playerWrapper.playerId)
         {
-            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
+            var newPlayer : player = playerWrapper.playerPos[playerWrapper.localPlayerId]
             if(newPlayer.y - 1 < 0)
             {
                 if(boardsWrapper.boards.count > 2)
@@ -188,9 +188,9 @@ class GameScene: SKScene {
     
     func downButton()
     {
-        if(localPlayerId == playerWrapper.playerId)
+        if(playerWrapper.localPlayerId == playerWrapper.playerId)
         {
-            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
+            var newPlayer : player = playerWrapper.playerPos[playerWrapper.localPlayerId]
             if(newPlayer.y + 1 > 19)
             {
                 if(boardsWrapper.boards.count > 2)
@@ -219,9 +219,9 @@ class GameScene: SKScene {
     
     func leftDownButton()
     {
-        if(localPlayerId == playerWrapper.playerId)
+        if(playerWrapper.localPlayerId == playerWrapper.playerId)
         {
-            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
+            var newPlayer : player = playerWrapper.playerPos[playerWrapper.localPlayerId]
             if(newPlayer.x - 1 < 0)
             {
                 if(boardsWrapper.boards.count > 0)
@@ -269,9 +269,9 @@ class GameScene: SKScene {
     
     func leftUpButton()
     {
-        if(localPlayerId == playerWrapper.playerId)
+        if(playerWrapper.localPlayerId == playerWrapper.playerId)
         {
-            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
+            var newPlayer : player = playerWrapper.playerPos[playerWrapper.localPlayerId]
             if(newPlayer.x - 1 < 0)
             {
                 if(boardsWrapper.boards.count > 0)
@@ -318,9 +318,9 @@ class GameScene: SKScene {
     
     func rightDownButton()
     {
-        if(localPlayerId == playerWrapper.playerId)
+        if(playerWrapper.localPlayerId == playerWrapper.playerId)
         {
-            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
+            var newPlayer : player = playerWrapper.playerPos[playerWrapper.localPlayerId]
             if(newPlayer.x + 1 > 19)
             {
                 if(boardsWrapper.boards.count > 0)
@@ -367,9 +367,9 @@ class GameScene: SKScene {
     
     func rightUpButton()
     {
-        if(localPlayerId == playerWrapper.playerId)
+        if(playerWrapper.localPlayerId == playerWrapper.playerId)
         {
-            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
+            var newPlayer : player = playerWrapper.playerPos[playerWrapper.localPlayerId]
             if(newPlayer.x + 1 > 19)
             {
                 if(boardsWrapper.boards.count > 0)
@@ -429,39 +429,52 @@ class GameScene: SKScene {
     {
         if(checkMove(position: player))
         {
+            var endGame : Bool = false
             if(boardsWrapper.boards[player.id].matrix[player.x][player.y] == 6)
             {
-                    let refreshAlert2 = UIAlertController(title: "Uwaga", message: "Wszedłeś na minę. Koniec gry!", preferredStyle: UIAlertControllerStyle.alert)
-                    
-                    refreshAlert2.addAction(UIAlertAction(title: "Ok", style: .default, handler: { (action: UIAlertAction!) in
-                        self.buttonLeft.removeFromSuperview()
-                        self.buttonRight.removeFromSuperview()
-                        self.buttonDown.removeFromSuperview()
-                        self.buttonUp.removeFromSuperview()
-                        self.buttonLeftDown.removeFromSuperview()
-                        self.buttonLeftUp.removeFromSuperview()
-                        self.buttonRightDown.removeFromSuperview()
-                        self.buttonRightUp.removeFromSuperview()
-                    }))
-                    
-                    self.view?.window?.rootViewController?.present(refreshAlert2, animated: true, completion: nil)
+                let refreshAlert2 = UIAlertController(title: "Uwaga", message: "Wszedłeś na minę. Koniec gry!", preferredStyle: UIAlertControllerStyle.alert)
+                
+                refreshAlert2.addAction(UIAlertAction(title: "Ok", style: .default, handler: { (action: UIAlertAction!) in
+                    self.buttonLeft.removeFromSuperview()
+                    self.buttonRight.removeFromSuperview()
+                    self.buttonDown.removeFromSuperview()
+                    self.buttonUp.removeFromSuperview()
+                    self.buttonLeftDown.removeFromSuperview()
+                    self.buttonLeftUp.removeFromSuperview()
+                    self.buttonRightDown.removeFromSuperview()
+                    self.buttonRightUp.removeFromSuperview()
+                }))
+                
+                self.view?.window?.rootViewController?.present(refreshAlert2, animated: true, completion: nil)
+                // zmiana pozycji w tablicy
+                boardsWrapper.boards[playerWrapper.playerPos[playerWrapper.playerId].id].matrix[playerWrapper.playerPos[playerWrapper.playerId].x][playerWrapper.playerPos[playerWrapper.playerId].y] = 0
+                playerWrapper.playerPos[playerWrapper.playerId] = player
+                boardsWrapper.boards[player.id].matrix[player.x][player.y] = playerWrapper.playerId + 1
+                
+                endGame = true
             }
             else if(boardsWrapper.boards[player.id].matrix[player.x][player.y] == 7)
             {
-                    let refreshAlert = UIAlertController(title: "Uwaga", message: "Znalazłeś skarb. Wygrałeś!", preferredStyle: UIAlertControllerStyle.alert)
-                    
-                    refreshAlert.addAction(UIAlertAction(title: "Ok", style: .default, handler: { (action: UIAlertAction!) in
-                        self.buttonLeft.removeFromSuperview()
-                        self.buttonRight.removeFromSuperview()
-                        self.buttonDown.removeFromSuperview()
-                        self.buttonUp.removeFromSuperview()
-                        self.buttonLeftDown.removeFromSuperview()
-                        self.buttonLeftUp.removeFromSuperview()
-                        self.buttonRightDown.removeFromSuperview()
-                        self.buttonRightUp.removeFromSuperview()
-                    }))
-                    
-                    self.view?.window?.rootViewController?.present(refreshAlert, animated: true, completion: nil)
+                let refreshAlert = UIAlertController(title: "Uwaga", message: "Znalazłeś skarb. Wygrałeś!", preferredStyle: UIAlertControllerStyle.alert)
+                
+                refreshAlert.addAction(UIAlertAction(title: "Ok", style: .default, handler: { (action: UIAlertAction!) in
+                    self.buttonLeft.removeFromSuperview()
+                    self.buttonRight.removeFromSuperview()
+                    self.buttonDown.removeFromSuperview()
+                    self.buttonUp.removeFromSuperview()
+                    self.buttonLeftDown.removeFromSuperview()
+                    self.buttonLeftUp.removeFromSuperview()
+                    self.buttonRightDown.removeFromSuperview()
+                    self.buttonRightUp.removeFromSuperview()
+                }))
+                
+                self.view?.window?.rootViewController?.present(refreshAlert, animated: true, completion: nil)
+                // zmiana pozycji w tablicy
+                boardsWrapper.boards[playerWrapper.playerPos[playerWrapper.playerId].id].matrix[playerWrapper.playerPos[playerWrapper.playerId].x][playerWrapper.playerPos[playerWrapper.playerId].y] = 0
+                playerWrapper.playerPos[playerWrapper.playerId] = player
+                boardsWrapper.boards[player.id].matrix[player.x][player.y] = playerWrapper.playerId + 1
+                
+                endGame = true
             }
             else
             {
@@ -469,7 +482,7 @@ class GameScene: SKScene {
                 boardsWrapper.boards[playerWrapper.playerPos[playerWrapper.playerId].id].matrix[playerWrapper.playerPos[playerWrapper.playerId].x][playerWrapper.playerPos[playerWrapper.playerId].y] = 0
                 playerWrapper.playerPos[playerWrapper.playerId] = player
                 boardsWrapper.boards[player.id].matrix[player.x][player.y] = playerWrapper.playerId + 1
-                if(localPlayerId == playerWrapper.playerId)
+                if(playerWrapper.localPlayerId == playerWrapper.playerId)
                 {
                     // odkrycie nowych pól
                     var matrixEnable : [[pos]] = []
@@ -660,11 +673,11 @@ class GameScene: SKScene {
                 }
                 drawCompass(angle: calculateCompass() )
             }
-            if((localPlayerId == playerWrapper.playerId) && !dontSendPos)
+            if((playerWrapper.localPlayerId == playerWrapper.playerId) && !dontSendPos)
             {
                 for i in (0..<playerWrapper.playerPos.count)
                 {
-                    if(i != localPlayerId)
+                    if(i != playerWrapper.localPlayerId)
                     {
                         playerWrapper.playerPos[i].sender.sendData(params: preparePlayerToSendJSON())
                     }
@@ -678,6 +691,18 @@ class GameScene: SKScene {
                 } else {
                     playerWrapper.playerId += 1
                 }
+            }
+            if(endGame)
+            {
+                // koniec połączeń
+                for i in(0..<playerWrapper.playerPos.count)
+                {
+                    if(i != playerWrapper.localPlayerId)
+                    {
+                        playerWrapper.playerPos[i].sender.disconnect()
+                    }
+                }
+                sender.stopServer()
             }
         }
     }
@@ -710,8 +735,8 @@ class GameScene: SKScene {
             playerWrapper.playerPos.append(player(ip: ip1.text!, lossNumber: boardsWrapper.boards[boardsWrapper.boards.count - 1].lossNumber, sender: client, id: 0, x: 9, y: 9))
             var queue : Dictionary<String, AnyObject> = [:]
             var message : Dictionary<String, AnyObject> = [:]
-            queue["ip"] = playerWrapper.playerPos[localPlayerId].ip as AnyObject?
-            queue["number"] = playerWrapper.playerPos[localPlayerId].lossNumber as AnyObject?
+            queue["ip"] = playerWrapper.playerPos[playerWrapper.localPlayerId].ip as AnyObject?
+            queue["number"] = playerWrapper.playerPos[playerWrapper.localPlayerId].lossNumber as AnyObject?
             message["randomQueue"] = queue as AnyObject?
             client.sendData(params: message)
         }
@@ -723,8 +748,8 @@ class GameScene: SKScene {
             playerWrapper.playerPos.append(player(ip: ip2.text!, lossNumber: boardsWrapper.boards[boardsWrapper.boards.count - 1].lossNumber, sender: client, id: 0, x: 9, y: 9))
             var queue : Dictionary<String, AnyObject> = [:]
             var message : Dictionary<String, AnyObject> = [:]
-            queue["ip"] = playerWrapper.playerPos[localPlayerId].ip as AnyObject?
-            queue["number"] = playerWrapper.playerPos[localPlayerId].lossNumber as AnyObject?
+            queue["ip"] = playerWrapper.playerPos[playerWrapper.localPlayerId].ip as AnyObject?
+            queue["number"] = playerWrapper.playerPos[playerWrapper.localPlayerId].lossNumber as AnyObject?
             message["randomQueue"] = queue as AnyObject?
             client.sendData(params: message)
         }
@@ -736,8 +761,8 @@ class GameScene: SKScene {
             playerWrapper.playerPos.append(player(ip: ip3.text!, lossNumber: boardsWrapper.boards[boardsWrapper.boards.count - 1].lossNumber, sender: client, id: 0, x: 9, y: 9))
             var queue : Dictionary<String, AnyObject> = [:]
             var message : Dictionary<String, AnyObject> = [:]
-            queue["ip"] = playerWrapper.playerPos[localPlayerId].ip as AnyObject?
-            queue["number"] = playerWrapper.playerPos[localPlayerId].lossNumber as AnyObject?
+            queue["ip"] = playerWrapper.playerPos[playerWrapper.localPlayerId].ip as AnyObject?
+            queue["number"] = playerWrapper.playerPos[playerWrapper.localPlayerId].lossNumber as AnyObject?
             message["randomQueue"] = queue as AnyObject?
             client.sendData(params: message)
         }
@@ -865,13 +890,13 @@ class GameScene: SKScene {
                         {
                             playerWrapper.playerPos[i].id = i
                         }
-                        localPlayerId = self.getLocalIdPlayer()
+                        playerWrapper.localPlayerId = self.getLocalIdPlayer()
                         
                         for i in (0..<playerWrapper.playerPos.count)
                         {
-                            if(i != localPlayerId)
+                            if(i != playerWrapper.localPlayerId)
                             {
-                                playerWrapper.playerPos[i].sender.sendData(params: boardsWrapper.boards[localPlayerId].genereteMinesBuildingDictionary(id: localPlayerId))
+                                playerWrapper.playerPos[i].sender.sendData(params: boardsWrapper.boards[playerWrapper.localPlayerId].genereteMinesBuildingDictionary(id: playerWrapper.localPlayerId))
                             }
                         }
                         initializingGameState = 1
@@ -883,11 +908,11 @@ class GameScene: SKScene {
                 if(sender.initialsMap == boardsWrapper.boards.count)
                 {
                     // jeśli tak, wylosuj i roześlij do innych graczy treausre
-                    if(localPlayerId == 0)
+                    if(playerWrapper.localPlayerId == 0)
                     {
                         for i in (0..<playerWrapper.playerPos.count)
                         {
-                            if(i != localPlayerId)
+                            if(i != playerWrapper.localPlayerId)
                             {
                                 boardsWrapper.treasurePos = generateTreasurePos()
                                 playerWrapper.playerPos[i].sender.sendData(params: prepareTreasureToSendJSON())
@@ -897,7 +922,7 @@ class GameScene: SKScene {
                     }
                     
                     // jeśli nie, to oczekuj na pakiet i idz dalej
-                    if(localPlayerId != 0 )
+                    if(playerWrapper.localPlayerId != 0 )
                     {
                         boardsWrapper.treasurePos = generateTreasurePos()
                             boardsWrapper.tresurePacketAnalysed = false
@@ -1029,10 +1054,10 @@ class GameScene: SKScene {
     func calculateCompass() -> Float
     {
         var angle : Float = 0
-        if(playerWrapper.playerPos[localPlayerId].id == boardsWrapper.treasurePos.id)
+        if(playerWrapper.playerPos[playerWrapper.localPlayerId].id == boardsWrapper.treasurePos.id)
         {
-            angle = Float(acos((Float(playerWrapper.playerPos[localPlayerId].x - boardsWrapper.treasurePos.x))/(Float(sqrt(Float(pow((Float(boardsWrapper.treasurePos.x - playerWrapper.playerPos[localPlayerId].x)), 2) + pow((Float(boardsWrapper.treasurePos.y - playerWrapper.playerPos[localPlayerId].y)), 2)))))))
-            if(playerWrapper.playerPos[localPlayerId].y < boardsWrapper.treasurePos.y)
+            angle = Float(acos((Float(playerWrapper.playerPos[playerWrapper.localPlayerId].x - boardsWrapper.treasurePos.x))/(Float(sqrt(Float(pow((Float(boardsWrapper.treasurePos.x - playerWrapper.playerPos[playerWrapper.localPlayerId].x)), 2) + pow((Float(boardsWrapper.treasurePos.y - playerWrapper.playerPos[playerWrapper.localPlayerId].y)), 2)))))))
+            if(playerWrapper.playerPos[playerWrapper.localPlayerId].y < boardsWrapper.treasurePos.y)
             {
                 angle = (2 * .pi) - angle
             }
@@ -1041,60 +1066,60 @@ class GameScene: SKScene {
         {
             if(boardsWrapper.treasurePos.id == 0)
             {
-                if(playerWrapper.playerPos[localPlayerId].id == 1)
+                if(playerWrapper.playerPos[playerWrapper.localPlayerId].id == 1)
                 {
                     angle = 0
                 }
-                else if(playerWrapper.playerPos[localPlayerId].id == 2)
+                else if(playerWrapper.playerPos[playerWrapper.localPlayerId].id == 2)
                 {
                     angle = 90
                 }
-                else if(playerWrapper.playerPos[localPlayerId].id == 3)
+                else if(playerWrapper.playerPos[playerWrapper.localPlayerId].id == 3)
                 {
                     angle = 180
                 }
             }
             else if(boardsWrapper.treasurePos.id == 1)
             {
-                if(playerWrapper.playerPos[localPlayerId].id == 0)
+                if(playerWrapper.playerPos[playerWrapper.localPlayerId].id == 0)
                 {
                     angle = 180
                 }
-                else if(playerWrapper.playerPos[localPlayerId].id == 2)
+                else if(playerWrapper.playerPos[playerWrapper.localPlayerId].id == 2)
                 {
                     angle = 0
                 }
-                else if(playerWrapper.playerPos[localPlayerId].id == 3)
+                else if(playerWrapper.playerPos[playerWrapper.localPlayerId].id == 3)
                 {
                     angle = 90
                 }
             }
             else if(boardsWrapper.treasurePos.id == 2)
             {
-                if(playerWrapper.playerPos[localPlayerId].id == 0)
+                if(playerWrapper.playerPos[playerWrapper.localPlayerId].id == 0)
                 {
                     angle = 90
                 }
-                else if(playerWrapper.playerPos[localPlayerId].id == 1)
+                else if(playerWrapper.playerPos[playerWrapper.localPlayerId].id == 1)
                 {
                     angle = 180
                 }
-                else if(playerWrapper.playerPos[localPlayerId].id == 3)
+                else if(playerWrapper.playerPos[playerWrapper.localPlayerId].id == 3)
                 {
                     angle = 0
                 }
             }
             else if(boardsWrapper.treasurePos.id == 3)
             {
-                if(playerWrapper.playerPos[localPlayerId].id == 0)
+                if(playerWrapper.playerPos[playerWrapper.localPlayerId].id == 0)
                 {
                     angle = 0
                 }
-                else if(playerWrapper.playerPos[localPlayerId].id == 1)
+                else if(playerWrapper.playerPos[playerWrapper.localPlayerId].id == 1)
                 {
                     angle = 90
                 }
-                else if(playerWrapper.playerPos[localPlayerId].id == 2)
+                else if(playerWrapper.playerPos[playerWrapper.localPlayerId].id == 2)
                 {
                     angle = 180
                 }
