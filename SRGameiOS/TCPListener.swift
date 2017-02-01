@@ -96,7 +96,40 @@ class TCPListener : AnyObject
             newPlayer.id = convertToDictionary(text: convertToJSON(value: JSONDictionary?["player"] as AnyObject))?["p"] as! Int
             newPlayer.x = convertToDictionary(text: convertToJSON(value: JSONDictionary?["player"] as AnyObject))?["x"] as! Int
             newPlayer.y = convertToDictionary(text: convertToJSON(value: JSONDictionary?["player"] as AnyObject))?["y"] as! Int
-            gameScene.makeMove(player: newPlayer, dontSendPos: true, goFuther: true)
+            if(boards.boards[newPlayer.id].matrix[newPlayer.x][newPlayer.y] == 6)
+            {
+                boards.boards[players.playerPos[players.playerId].id].matrix[players.playerPos[players.playerId].x][players.playerPos[players.playerId].y] = 0
+                players.playerPos.remove(at: players.playerId)
+            }
+            else if(boards.boards[newPlayer.id].matrix[newPlayer.x][newPlayer.y] == 7)
+            {
+                let refreshAlert = UIAlertController(title: "Uwaga", message: "Gracz nr \(players.playerId+1) znalazł skarb! Przegrałeś!", preferredStyle: UIAlertControllerStyle.alert)
+                
+                refreshAlert.addAction(UIAlertAction(title: "Ok", style: .default, handler: { (action: UIAlertAction!) in
+                    self.gameScene.buttonLeft.removeFromSuperview()
+                    self.gameScene.buttonRight.removeFromSuperview()
+                    self.gameScene.buttonDown.removeFromSuperview()
+                    self.gameScene.buttonUp.removeFromSuperview()
+                    self.gameScene.buttonLeftDown.removeFromSuperview()
+                    self.gameScene.buttonLeftUp.removeFromSuperview()
+                    self.gameScene.buttonRightDown.removeFromSuperview()
+                    self.gameScene.buttonRightUp.removeFromSuperview()
+                }))
+                
+                self.gameScene.view?.window?.rootViewController?.present(refreshAlert, animated: true, completion: nil)
+            }
+            else
+            {
+                boards.boards[players.playerPos[players.playerId].id].matrix[players.playerPos[players.playerId].x][players.playerPos[players.playerId].y] = 0
+                players.playerPos[players.playerId] = newPlayer
+                boards.boards[newPlayer.id].matrix[newPlayer.x][newPlayer.y] = players.playerId + 1
+                if(players.playerId + 1 >= players.playerPos.count)
+                {
+                    players.playerId = 0
+                } else {
+                    players.playerId += 1
+                }
+            }
         }
     }
     

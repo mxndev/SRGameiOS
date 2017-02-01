@@ -103,9 +103,9 @@ class GameScene: SKScene {
     
     func leftButton()
     {
-        //if(localPlayerId == playerWrapper.playerId)
-        //{
-            var newPlayer : player = playerWrapper.playerPos[playerWrapper.playerId]
+        if(localPlayerId == playerWrapper.playerId)
+        {
+            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
             if(newPlayer.x - 1 < 0)
             {
                 if(boardsWrapper.boards.count > 0)
@@ -125,14 +125,14 @@ class GameScene: SKScene {
                 newPlayer.x -= 1
             }
             makeMove(player: newPlayer, dontSendPos: false, goFuther: true)
-        //}
+        }
     }
     
     func rightButton()
     {
-        //if(localPlayerId == playerWrapper.playerId)
-        //{
-            var newPlayer : player = playerWrapper.playerPos[playerWrapper.playerId]
+        if(localPlayerId == playerWrapper.playerId)
+        {
+            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
             if(newPlayer.x + 1 > 19)
             {
                 if(boardsWrapper.boards.count > 0)
@@ -152,14 +152,14 @@ class GameScene: SKScene {
                 newPlayer.x += 1
             }
             makeMove(player: newPlayer, dontSendPos: false, goFuther: true)
-        //}
+        }
     }
     
     func upButton()
     {
-        //if(localPlayerId == playerWrapper.playerId)
-        //{
-            var newPlayer : player = playerWrapper.playerPos[playerWrapper.playerId]
+        if(localPlayerId == playerWrapper.playerId)
+        {
+            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
             if(newPlayer.y - 1 < 0)
             {
                 if(boardsWrapper.boards.count > 2)
@@ -183,14 +183,14 @@ class GameScene: SKScene {
                 newPlayer.y -= 1
             }
             makeMove(player: newPlayer, dontSendPos: false, goFuther: true)
-        //}
+        }
     }
     
     func downButton()
     {
-        //if(localPlayerId == playerWrapper.playerId)
-        //{
-            var newPlayer : player = playerWrapper.playerPos[playerWrapper.playerId]
+        if(localPlayerId == playerWrapper.playerId)
+        {
+            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
             if(newPlayer.y + 1 > 19)
             {
                 if(boardsWrapper.boards.count > 2)
@@ -214,14 +214,14 @@ class GameScene: SKScene {
                 newPlayer.y += 1
             }
             makeMove(player: newPlayer, dontSendPos: false, goFuther: true)
-        //}
+        }
     }
     
     func leftDownButton()
     {
         if(localPlayerId == playerWrapper.playerId)
         {
-            var newPlayer : player = playerWrapper.playerPos[playerWrapper.playerId]
+            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
             if(newPlayer.x - 1 < 0)
             {
                 if(boardsWrapper.boards.count > 0)
@@ -271,7 +271,7 @@ class GameScene: SKScene {
     {
         if(localPlayerId == playerWrapper.playerId)
         {
-            var newPlayer : player = playerWrapper.playerPos[playerWrapper.playerId]
+            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
             if(newPlayer.x - 1 < 0)
             {
                 if(boardsWrapper.boards.count > 0)
@@ -320,7 +320,7 @@ class GameScene: SKScene {
     {
         if(localPlayerId == playerWrapper.playerId)
         {
-            var newPlayer : player = playerWrapper.playerPos[playerWrapper.playerId]
+            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
             if(newPlayer.x + 1 > 19)
             {
                 if(boardsWrapper.boards.count > 0)
@@ -369,7 +369,7 @@ class GameScene: SKScene {
     {
         if(localPlayerId == playerWrapper.playerId)
         {
-            var newPlayer : player = playerWrapper.playerPos[playerWrapper.playerId]
+            var newPlayer : player = playerWrapper.playerPos[localPlayerId]
             if(newPlayer.x + 1 > 19)
             {
                 if(boardsWrapper.boards.count > 0)
@@ -416,7 +416,7 @@ class GameScene: SKScene {
     
     func checkMove(position : player) -> Bool
     {
-        if((boardsWrapper.boards[position.id].matrix[position.x][position.y] != 5) && (boardsWrapper.boards[position.id].matrix[position.x][position.y]  != 1) && (boardsWrapper.boards[position.id].matrix[position.x][position.y]  != 2) && (boardsWrapper.boards[position.id].matrix[position.x][position.y]  != 3) && (boardsWrapper.boards[position.id].matrix[position.x][position.y]  != 4))
+        if((boardsWrapper.boards[position.id].matrix[position.x][position.y] != 5) && (boardsWrapper.boards[position.id].matrix[position.x][position.y] != 1) && (boardsWrapper.boards[position.id].matrix[position.x][position.y] != 2) && (boardsWrapper.boards[position.id].matrix[position.x][position.y] != 3) && (boardsWrapper.boards[position.id].matrix[position.x][position.y] != 4))
         {
             return true
         }
@@ -431,8 +431,6 @@ class GameScene: SKScene {
         {
             if(boardsWrapper.boards[player.id].matrix[player.x][player.y] == 6)
             {
-                if(localPlayerId == playerWrapper.playerId)
-                {
                     let refreshAlert2 = UIAlertController(title: "Uwaga", message: "Wszedłeś na minę. Koniec gry!", preferredStyle: UIAlertControllerStyle.alert)
                     
                     refreshAlert2.addAction(UIAlertAction(title: "Ok", style: .default, handler: { (action: UIAlertAction!) in
@@ -447,15 +445,9 @@ class GameScene: SKScene {
                     }))
                     
                     self.view?.window?.rootViewController?.present(refreshAlert2, animated: true, completion: nil)
-                } else {
-                    boardsWrapper.boards[playerWrapper.playerPos[playerWrapper.playerId].id].matrix[playerWrapper.playerPos[playerWrapper.playerId].x][playerWrapper.playerPos[playerWrapper.playerId].y] = 0
-                    playerWrapper.playerPos.remove(at: playerWrapper.playerId)
-                }
             }
             else if(boardsWrapper.boards[player.id].matrix[player.x][player.y] == 7)
             {
-                if(localPlayerId == playerWrapper.playerId)
-                {
                     let refreshAlert = UIAlertController(title: "Uwaga", message: "Znalazłeś skarb. Wygrałeś!", preferredStyle: UIAlertControllerStyle.alert)
                     
                     refreshAlert.addAction(UIAlertAction(title: "Ok", style: .default, handler: { (action: UIAlertAction!) in
@@ -470,34 +462,15 @@ class GameScene: SKScene {
                     }))
                     
                     self.view?.window?.rootViewController?.present(refreshAlert, animated: true, completion: nil)
-                } else {
-                    let refreshAlert = UIAlertController(title: "Uwaga", message: "Gracz nr \(playerWrapper.playerId+1) znalazł skarb! Przegrałeś!", preferredStyle: UIAlertControllerStyle.alert)
-                    
-                    refreshAlert.addAction(UIAlertAction(title: "Ok", style: .default, handler: { (action: UIAlertAction!) in
-                        self.buttonLeft.removeFromSuperview()
-                        self.buttonRight.removeFromSuperview()
-                        self.buttonDown.removeFromSuperview()
-                        self.buttonUp.removeFromSuperview()
-                        self.buttonLeftDown.removeFromSuperview()
-                        self.buttonLeftUp.removeFromSuperview()
-                        self.buttonRightDown.removeFromSuperview()
-                        self.buttonRightUp.removeFromSuperview()
-                    }))
-                    
-                    self.view?.window?.rootViewController?.present(refreshAlert, animated: true, completion: nil)
-                }
             }
             else
             {
                 // zmiana pozycji w tablicy
                 boardsWrapper.boards[playerWrapper.playerPos[playerWrapper.playerId].id].matrix[playerWrapper.playerPos[playerWrapper.playerId].x][playerWrapper.playerPos[playerWrapper.playerId].y] = 0
-                print("Clear player position at id:\(playerWrapper.playerPos[playerWrapper.playerId].id) x:\(playerWrapper.playerPos[playerWrapper.playerId].x) y:\(playerWrapper.playerPos[playerWrapper.playerId].y)")
                 playerWrapper.playerPos[playerWrapper.playerId] = player
                 boardsWrapper.boards[player.id].matrix[player.x][player.y] = playerWrapper.playerId + 1
-                print("New player position at id:\(player.id) x:\(player.x) y:\(player.y)")
                 if(localPlayerId == playerWrapper.playerId)
                 {
-                    print("Local player. Discover fields...")
                     // odkrycie nowych pól
                     var matrixEnable : [[pos]] = []
                     for i in (player.x-1..<player.x+2)
@@ -693,7 +666,7 @@ class GameScene: SKScene {
                 {
                     if(i != localPlayerId)
                     {
-                        //playerWrapper.playerPos[i].sender.sendData(params: preparePlayerToSendJSON())
+                        playerWrapper.playerPos[i].sender.sendData(params: preparePlayerToSendJSON())
                     }
                 }
             }
@@ -733,46 +706,40 @@ class GameScene: SKScene {
         {
             self.countOfPlayers += 1
             let client = TCPSender()
-            boardsWrapper.boards.append(BoardModel(scene: self, initializeFields: true))
-            //client.connect(host: ip1.text!, port: port1.text!)
-            playerWrapper.playerPos.append(player(ip: "45.678:43", lossNumber: boardsWrapper.boards[boardsWrapper.boards.count - 1].lossNumber, sender: client, id: 0, x: 9, y: 9))
+            client.connect(host: ip1.text!, port: port1.text!)
+            playerWrapper.playerPos.append(player(ip: ip1.text!, lossNumber: boardsWrapper.boards[boardsWrapper.boards.count - 1].lossNumber, sender: client, id: 0, x: 9, y: 9))
             var queue : Dictionary<String, AnyObject> = [:]
             var message : Dictionary<String, AnyObject> = [:]
             queue["ip"] = playerWrapper.playerPos[localPlayerId].ip as AnyObject?
             queue["number"] = playerWrapper.playerPos[localPlayerId].lossNumber as AnyObject?
             message["randomQueue"] = queue as AnyObject?
-            //client.sendData(params: message)
-            sender.initialsMap += 1
+            client.sendData(params: message)
         }
-        if(ip2.text == "")
+        if(ip2.text != "")
         {
             self.countOfPlayers += 1
             let client = TCPSender()
-            boardsWrapper.boards.append(BoardModel(scene: self, initializeFields: true))
-            //client.connect(host: ip2.text!, port: port2.text!)
-            playerWrapper.playerPos.append(player(ip: "45.6783:43", lossNumber: boardsWrapper.boards[boardsWrapper.boards.count - 1].lossNumber, sender: client, id: 0, x: 9, y: 9))
+            client.connect(host: ip2.text!, port: port2.text!)
+            playerWrapper.playerPos.append(player(ip: ip2.text!, lossNumber: boardsWrapper.boards[boardsWrapper.boards.count - 1].lossNumber, sender: client, id: 0, x: 9, y: 9))
             var queue : Dictionary<String, AnyObject> = [:]
             var message : Dictionary<String, AnyObject> = [:]
             queue["ip"] = playerWrapper.playerPos[localPlayerId].ip as AnyObject?
             queue["number"] = playerWrapper.playerPos[localPlayerId].lossNumber as AnyObject?
             message["randomQueue"] = queue as AnyObject?
-            //client.sendData(params: message)
-            sender.initialsMap += 1
+            client.sendData(params: message)
         }
-        if(ip3.text == "")
+        if(ip3.text != "")
         {
             self.countOfPlayers += 1
             let client = TCPSender()
-            boardsWrapper.boards.append(BoardModel(scene: self, initializeFields: true))
-            //client.connect(host: ip3.text!, port: port3.text!)
-            playerWrapper.playerPos.append(player(ip: "45.67832:43", lossNumber: boardsWrapper.boards[boardsWrapper.boards.count - 1].lossNumber, sender: client, id: 0, x: 9, y: 9))
+            client.connect(host: ip3.text!, port: port3.text!)
+            playerWrapper.playerPos.append(player(ip: ip3.text!, lossNumber: boardsWrapper.boards[boardsWrapper.boards.count - 1].lossNumber, sender: client, id: 0, x: 9, y: 9))
             var queue : Dictionary<String, AnyObject> = [:]
             var message : Dictionary<String, AnyObject> = [:]
             queue["ip"] = playerWrapper.playerPos[localPlayerId].ip as AnyObject?
             queue["number"] = playerWrapper.playerPos[localPlayerId].lossNumber as AnyObject?
             message["randomQueue"] = queue as AnyObject?
-            //client.sendData(params: message)
-            sender.initialsMap += 1
+            client.sendData(params: message)
         }
         gameState = 1
     }
@@ -904,7 +871,7 @@ class GameScene: SKScene {
                         {
                             if(i != localPlayerId)
                             {
-                                //playerWrapper.playerPos[i].sender.sendData(params: boardsWrapper.boards[localPlayerId].genereteMinesBuildingDictionary(id: localPlayerId))
+                                playerWrapper.playerPos[i].sender.sendData(params: boardsWrapper.boards[localPlayerId].genereteMinesBuildingDictionary(id: localPlayerId))
                             }
                         }
                         initializingGameState = 1
@@ -923,7 +890,7 @@ class GameScene: SKScene {
                             if(i != localPlayerId)
                             {
                                 boardsWrapper.treasurePos = generateTreasurePos()
-                               // playerWrapper.playerPos[i].sender.sendData(params: prepareTreasureToSendJSON())
+                                playerWrapper.playerPos[i].sender.sendData(params: prepareTreasureToSendJSON())
                             }
                         }
                         initializingGameState = 2

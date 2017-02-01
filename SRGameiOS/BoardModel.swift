@@ -166,7 +166,7 @@ class BoardModel {
                 }
                 else if(matrix[i][j] == 7)
                 {
-                    matrixShape[i][j].fillColor = SKColor.orange
+                    matrixShape[i][j].fillColor = SKColor.cyan
                 }
                 else if(matrixVisible[i][j] == 0)
                 {
