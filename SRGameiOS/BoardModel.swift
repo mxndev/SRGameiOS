@@ -63,10 +63,12 @@ class BoardModel {
         }
     }
     
-    func setInitialNumber(number : Int, ip : String)
+    init(scene : SKScene, number : Int, ip : String)
     {
-        self.lossNumber = number
+        skScene = scene
+        
         self.ip = ip
+        self.lossNumber = number
     }
     
     func setXY(x : Int, y : Int)

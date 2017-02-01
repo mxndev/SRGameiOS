@@ -36,7 +36,7 @@ class TCPListener : AnyObject
     
     func startServer()
     {
-        self.server = TCPSender(address: getWiFiAddress()!, port: self.port)
+        self.server = TCPServer(address: getWiFiAddress()!, port: self.port)
         DispatchQueue.global(qos: .background).async
         {
             while true
@@ -72,8 +72,7 @@ class TCPListener : AnyObject
         let JSONDictionary = convertToDictionary(text: jsonString)
         if(JSONDictionary?["randomQueue"] != nil)
         {
-            boards.boards.append(BoardModel(scene: gameScene, initializeFields: false))
-            boards.boards[boards.boards.count - 1].setInitialNumber(number: convertToDictionary(text: convertToJSON(value: JSONDictionary?["randomQueue"] as AnyObject))?["number"] as! Int, ip:(convertToDictionary(text: convertToJSON(value: JSONDictionary?["randomQueue"] as AnyObject))?["ip"] as! String).characters.split{$0 == ":"}.map(String.init)[0])
+            boards.boards.append(BoardModel(scene: gameScene, number: convertToDictionary(text: convertToJSON(value: JSONDictionary?["randomQueue"] as AnyObject))?["number"] as! Int, ip:(convertToDictionary(text: convertToJSON(value: JSONDictionary?["randomQueue"] as AnyObject))?["ip"] as! String).characters.split{$0 == ":"}.map(String.init)[0]))
         }
         else if(JSONDictionary?["map"] != nil)
         {
@@ -93,10 +92,11 @@ class TCPListener : AnyObject
         }
         else if(JSONDictionary?["player"] != nil)
         {
-            boards.treasurePos.id = convertToDictionary(text: convertToJSON(value: JSONDictionary?["player"] as AnyObject))?["p"] as! Int
-            boards.treasurePos.x = convertToDictionary(text: convertToJSON(value: JSONDictionary?["player"] as AnyObject))?["x"] as! Int
-            boards.treasurePos.y = convertToDictionary(text: convertToJSON(value: JSONDictionary?["player"] as AnyObject))?["y"] as! Int
-            gameScene.makeMove(player: players.playerPos[players.playerId])
+            var newPlayer : player = players.playerPos[players.playerId]
+            newPlayer.id = convertToDictionary(text: convertToJSON(value: JSONDictionary?["player"] as AnyObject))?["p"] as! Int
+            newPlayer.x = convertToDictionary(text: convertToJSON(value: JSONDictionary?["player"] as AnyObject))?["x"] as! Int
+            newPlayer.y = convertToDictionary(text: convertToJSON(value: JSONDictionary?["player"] as AnyObject))?["y"] as! Int
+            gameScene.makeMove(player: newPlayer, dontSendPos: true, goFuther: true)
         }
     }
     

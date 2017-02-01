@@ -124,7 +124,7 @@ class GameScene: SKScene {
             {
                 newPlayer.x -= 1
             }
-            makeMove(player: newPlayer)
+            makeMove(player: newPlayer, dontSendPos: false, goFuther: true)
         }
     }
     
@@ -151,7 +151,7 @@ class GameScene: SKScene {
             {
                 newPlayer.x += 1
             }
-            makeMove(player: newPlayer)
+            makeMove(player: newPlayer, dontSendPos: false, goFuther: true)
         }
     }
     
@@ -182,7 +182,7 @@ class GameScene: SKScene {
             {
                 newPlayer.y -= 1
             }
-            makeMove(player: newPlayer)
+            makeMove(player: newPlayer, dontSendPos: false, goFuther: true)
         }
     }
     
@@ -213,7 +213,7 @@ class GameScene: SKScene {
             {
                 newPlayer.y += 1
             }
-            makeMove(player: newPlayer)
+            makeMove(player: newPlayer, dontSendPos: false, goFuther: true)
         }
     }
     
@@ -263,7 +263,7 @@ class GameScene: SKScene {
                 newPlayer.y += 1
             }
             
-            makeMove(player: newPlayer)
+            makeMove(player: newPlayer, dontSendPos: false, goFuther: true)
         }
     }
     
@@ -312,7 +312,7 @@ class GameScene: SKScene {
             {
                 newPlayer.y -= 1
             }
-            makeMove(player: newPlayer)
+            makeMove(player: newPlayer, dontSendPos: false, goFuther: true)
         }
     }
     
@@ -361,7 +361,7 @@ class GameScene: SKScene {
             {
                 newPlayer.y += 1
             }
-            makeMove(player: newPlayer)
+            makeMove(player: newPlayer, dontSendPos: false, goFuther: true)
         }
     }
     
@@ -410,7 +410,7 @@ class GameScene: SKScene {
             {
                 newPlayer.y -= 1
             }
-            makeMove(player: newPlayer)
+            makeMove(player: newPlayer, dontSendPos: false, goFuther: true)
         }
     }
     
@@ -425,7 +425,7 @@ class GameScene: SKScene {
         }
     }
     
-    func makeMove(player : player)
+    func makeMove(player : player, dontSendPos : Bool, goFuther : Bool)
     {
         if(checkMove(position: player))
         {
@@ -507,7 +507,7 @@ class GameScene: SKScene {
                         matrixEnable.append(matrixLine)
                     }
                     var boardId : Int = 0
-                    if(position.x == 0)
+                    if(player.x == 0)
                     {
                         if(boardsWrapper.boards.count > 0)
                         {
@@ -531,7 +531,7 @@ class GameScene: SKScene {
                             }
                         }
                     }
-                    if(position.y == 0)
+                    if(player.y == 0)
                     {
                         if(boardsWrapper.boards.count > 2)
                         {
@@ -559,7 +559,7 @@ class GameScene: SKScene {
                             }
                         }
                     }
-                    if(position.x == 19)
+                    if(player.x == 19)
                     {
                         if(boardsWrapper.boards.count > 0)
                         {
@@ -583,7 +583,7 @@ class GameScene: SKScene {
                             }
                         }
                     }
-                    if(position.y == 19)
+                    if(player.y == 19)
                     {
                         if(player.id / 2 == 0)
                         {
@@ -609,7 +609,7 @@ class GameScene: SKScene {
                         }
                     }
 
-                    if((position.x == 0) && (position.y == 0))
+                    if((player.x == 0) && (player.y == 0))
                     {
                         var findBoards : Set<Int> = []
                         findBoards.insert(matrixEnable[0][1].id)
@@ -625,7 +625,7 @@ class GameScene: SKScene {
                         }
                     }
                     
-                    if((position.x == 0) && (position.y == 19))
+                    if((player.x == 0) && (player.y == 19))
                     {
                         var findBoards : Set<Int> = []
                         findBoards.insert(matrixEnable[0][1].id)
@@ -641,7 +641,7 @@ class GameScene: SKScene {
                         }
                     }
 
-                    if((position.x == 19) && (position.y == 0))
+                    if((player.x == 19) && (player.y == 0))
                     {
                         var findBoards : Set<Int> = []
                         findBoards.insert(matrixEnable[1][0].id)
@@ -657,7 +657,7 @@ class GameScene: SKScene {
                         }
                     }
 
-                    if((position.x == 19) && (position.y == 19))
+                    if((player.x == 19) && (player.y == 19))
                     {
                         var findBoards : Set<Int> = []
                         findBoards.insert(matrixEnable[1][2].id)
@@ -685,11 +685,24 @@ class GameScene: SKScene {
                 drawCompass(angle: calculateCompass() )
             }
         }
-        if(playerWrapper.playerId + 1 >= playerWrapper.playerPos.count)
+        if((localPlayerId == playerWrapper.playerId) && !dontSendPos)
         {
-            playerWrapper.playerId = 0
-        } else {
-            playerWrapper.playerId += 1
+            for i in (0..<playerWrapper.playerPos.count)
+            {
+                if(i != localPlayerId)
+                {
+                    playerWrapper.playerPos[i].sender.sendData(params: preparePlayerToSendJSON())
+                }
+            }
+        }
+        if(goFuther)
+        {
+            if(playerWrapper.playerId + 1 >= playerWrapper.playerPos.count)
+            {
+                playerWrapper.playerId = 0
+            } else {
+                playerWrapper.playerId += 1
+            }
         }
     }
     
@@ -994,9 +1007,9 @@ class GameScene: SKScene {
             
             for i in (0..<playerWrapper.playerPos.count)
             {
-                makeMove(player: playerWrapper.playerPos[i])
+                makeMove(player: playerWrapper.playerPos[i], dontSendPos: true, goFuther: true)
             }
-            drawCompass(angle: 0)
+            //drawCompass(angle: 0)
             
             boardsWrapper.boards[boardsWrapper.treasurePos.id].matrix[boardsWrapper.treasurePos.x][boardsWrapper.treasurePos.y] = 7
             gameState = 3
@@ -1182,5 +1195,16 @@ class GameScene: SKScene {
         point["y"] = boardsWrapper.treasurePos.y as AnyObject?
         treasure["treasure"] = point as AnyObject?
         return treasure
+    }
+    
+    func preparePlayerToSendJSON() -> Dictionary<String, AnyObject>
+    {
+        var point : Dictionary<String, AnyObject> = [:]
+        var player : Dictionary<String, AnyObject> = [:]
+        point["p"] = playerWrapper.playerPos[playerWrapper.playerId].id as AnyObject?
+        point["x"] = playerWrapper.playerPos[playerWrapper.playerId].x as AnyObject?
+        point["y"] = playerWrapper.playerPos[playerWrapper.playerId].y as AnyObject?
+        player["player"] = point as AnyObject?
+        return player
     }
 }
