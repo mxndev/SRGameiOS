@@ -156,25 +156,21 @@ class BoardModel {
                 {
                     matrixShape[i][j].fillColor = SKColor.purple
                 }
-                else if(matrix[i][j] == 5)
+                else if((matrix[i][j] == 5) && (matrixVisible[i][j] == 1))
                 {
                     matrixShape[i][j].fillColor = SKColor.yellow
                 }
-                else if(matrix[i][j] == 6)
-                {
-                    matrixShape[i][j].fillColor = SKColor.red
-                }
-                else if(matrix[i][j] == 7)
+                else if((matrix[i][j] == 7) && (matrixVisible[i][j] == 1))
                 {
                     matrixShape[i][j].fillColor = SKColor.cyan
-                }
-                else if(matrixVisible[i][j] == 0)
-                {
-                    matrixShape[i][j].fillColor = SKColor.white
                 }
                 else if(matrixVisible[i][j] == 1)
                 {
                     matrixShape[i][j].fillColor = SKColor.green
+                }
+                else if(matrixVisible[i][j] == 0)
+                {
+                    matrixShape[i][j].fillColor = SKColor.white
                 }
             }
         }
@@ -195,7 +191,7 @@ class BoardModel {
                     shapeLine[j].position = CGPoint(x: i*17 - Int(skScene.size.width*0.48) + posX, y: Int(skScene.size.height*0.5) - 15 - j*17 + posY)
                     skScene.addChild(shapeLine[j])
                 
-                    if(calculateMines(posX: i, posY: j) > 0)
+                    if((calculateMines(posX: i, posY: j) > 0) && (matrixVisible[i][j] == 1))
                     {
                         label.append(SKLabelNode(fontNamed: "Arial"))
                         label[label.count - 1].text = String(calculateMines(posX: i, posY: j))
@@ -221,6 +217,21 @@ class BoardModel {
             {
                 skScene.addChild(label[i])
             }
+            for i in (0..<matrix.count)
+            {
+                for j in (0..<matrix[i].count)
+                {
+                    if((calculateMines(posX: i, posY: j) > 0) && (matrixVisible[i][j] == 1))
+                    {
+                        label.append(SKLabelNode(fontNamed: "Arial"))
+                        label[label.count - 1].text = String(calculateMines(posX: i, posY: j))
+                        label[label.count - 1].fontSize = 15
+                        label[label.count - 1].fontColor = UIColor.black
+                        label[label.count - 1].position = CGPoint(x: i*17 - Int(skScene.size.width*0.48) + posX, y: Int(skScene.size.height*0.5) - 21 - j*17 + posY)
+                        skScene.addChild(label[label.count - 1])
+                    }
+                }
+            }
         }
     }
     
@@ -231,15 +242,18 @@ class BoardModel {
     func calculateMines(posX : Int, posY : Int) -> Int
     {
         var counter : Int = 0
-        for i in (posX-1..<posX+1)
+        for i in (posX-1..<posX+2)
         {
-            for j in (posY-1..<posY+1)
+            for j in (posY-1..<posY+2)
             {
-                if((i >= 0) && (i <= 19) && (j >= 0) && (j <= 19))
+                if((i != posX) || (j != posY))
                 {
-                    if(matrix[i][j] == 6)
+                    if((i >= 0) && (i <= 19) && (j >= 0) && (j <= 19))
                     {
-                        counter += 1
+                        if(matrix[i][j] == 6)
+                        {
+                            counter += 1
+                        }
                     }
                 }
             }

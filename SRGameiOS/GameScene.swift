@@ -9,40 +9,6 @@
 import SpriteKit
 import GameplayKit
 
-struct player
-{
-    public var ip : String
-    var lossNumber : Int = 0
-    public var sender : TCPSender
-    public var id : Int
-    public var x, y : Int
-}
-
-struct pos
-{
-    public var id : Int
-    public var x, y : Int
-}
-
-class PlayerWrapper {
-    var playerPos : [player] = []
-    var playerId : Int = 0 // runda gracza
-    var localPlayerId : Int = 0 // lokalny gracz
-    
-    init(playerPos: [player]) {
-        self.playerPos = playerPos
-    }}
-
-class BoardsWrapper {
-    var boards : [BoardModel] = []
-    var treasurePos : pos = pos(id: 0, x: 0, y: 0)
-    var tresurePacketAnalysed : Bool = false
-    
-    init(boards: [BoardModel]) {
-        self.boards = boards
-    }
-}
-
 class GameScene: SKScene {
     
     private var label : SKLabelNode?
@@ -74,6 +40,7 @@ class GameScene: SKScene {
     var connect : UIButton = UIButton()
     var labelConnecting : SKLabelNode?
     var countOfPlayers : Int = 0
+    var endGame : Bool = false
     
     override func didMove(to view: SKView) {
     }
@@ -416,9 +383,29 @@ class GameScene: SKScene {
     
     func checkMove(position : player) -> Bool
     {
-        if((boardsWrapper.boards[position.id].matrix[position.x][position.y] != 5) && (boardsWrapper.boards[position.id].matrix[position.x][position.y] != 1) && (boardsWrapper.boards[position.id].matrix[position.x][position.y] != 2) && (boardsWrapper.boards[position.id].matrix[position.x][position.y] != 3) && (boardsWrapper.boards[position.id].matrix[position.x][position.y] != 4))
+        if((boardsWrapper.boards[position.id].matrix[position.x][position.y] != 5))
         {
-            return true
+            if((boardsWrapper.boards[position.id].matrix[position.x][position.y] == 1) && (playerWrapper.localPlayerId != 0))
+            {
+                return false
+            } else {
+                if((boardsWrapper.boards[position.id].matrix[position.x][position.y] == 2) && (playerWrapper.localPlayerId != 1))
+                {
+                    return false
+                } else {
+                    if((boardsWrapper.boards[position.id].matrix[position.x][position.y] == 3) && (playerWrapper.localPlayerId != 2))
+                    {
+                        return false
+                    } else {
+                        if((boardsWrapper.boards[position.id].matrix[position.x][position.y] == 4) && (playerWrapper.localPlayerId != 3))
+                        {
+                            return false
+                        } else {
+                            return true
+                        }
+                    }
+                }
+            }
         }
         else{
             return false
@@ -429,7 +416,6 @@ class GameScene: SKScene {
     {
         if(checkMove(position: player))
         {
-            var endGame : Bool = false
             if(boardsWrapper.boards[player.id].matrix[player.x][player.y] == 6)
             {
                 let refreshAlert2 = UIAlertController(title: "Uwaga", message: "Wszedłeś na minę. Koniec gry!", preferredStyle: UIAlertControllerStyle.alert)
@@ -452,6 +438,26 @@ class GameScene: SKScene {
                 boardsWrapper.boards[player.id].matrix[player.x][player.y] = playerWrapper.playerId + 1
                 
                 endGame = true
+                
+                if((playerWrapper.localPlayerId == playerWrapper.playerId) && !dontSendPos)
+                {
+                    for i in (0..<playerWrapper.playerPos.count)
+                    {
+                        if(i != playerWrapper.localPlayerId)
+                        {
+                            playerWrapper.playerPos[i].sender.sendData(params: preparePlayerToSendJSON())
+                        }
+                    }
+                }
+                if(goFuther)
+                {
+                    if(playerWrapper.playerId + 1 >= playerWrapper.playerPos.count)
+                    {
+                        playerWrapper.playerId = 0
+                    } else {
+                        playerWrapper.playerId += 1
+                    }
+                }
             }
             else if(boardsWrapper.boards[player.id].matrix[player.x][player.y] == 7)
             {
@@ -475,6 +481,26 @@ class GameScene: SKScene {
                 boardsWrapper.boards[player.id].matrix[player.x][player.y] = playerWrapper.playerId + 1
                 
                 endGame = true
+                
+                if((playerWrapper.localPlayerId == playerWrapper.playerId) && !dontSendPos)
+                {
+                    for i in (0..<playerWrapper.playerPos.count)
+                    {
+                        if(i != playerWrapper.localPlayerId)
+                        {
+                            playerWrapper.playerPos[i].sender.sendData(params: preparePlayerToSendJSON())
+                        }
+                    }
+                }
+                if(goFuther)
+                {
+                    if(playerWrapper.playerId + 1 >= playerWrapper.playerPos.count)
+                    {
+                        playerWrapper.playerId = 0
+                    } else {
+                        playerWrapper.playerId += 1
+                    }
+                }
             }
             else
             {
@@ -666,6 +692,34 @@ class GameScene: SKScene {
 
                 }
                 self.removeAllChildren()
+                if((playerWrapper.localPlayerId == playerWrapper.playerId) && !dontSendPos)
+                {
+                    for i in (0..<playerWrapper.playerPos.count)
+                    {
+                        if(i != playerWrapper.localPlayerId)
+                        {
+                            playerWrapper.playerPos[i].sender.sendData(params: preparePlayerToSendJSON())
+                        }
+                    }
+                }
+                if(goFuther)
+                {
+                    if(playerWrapper.playerId + 1 >= playerWrapper.playerPos.count)
+                    {
+                        playerWrapper.playerId = 0
+                    } else {
+                        playerWrapper.playerId += 1
+                    }
+                }
+                if(playerWrapper.localPlayerId == playerWrapper.playerId)
+                {
+                    boardsWrapper.roundLabel.text = String("Twoja kolej: Tak")
+                    boardsWrapper.numberOfCount = 30
+                } else {
+                    boardsWrapper.roundLabel.text = String("Twoja kolej: Nie")
+                }
+                self.addChild(boardsWrapper.roundLabel)
+                self.addChild(boardsWrapper.counterLabel)
                 
                 for i in(0..<boardsWrapper.boards.count)
                 {
@@ -673,25 +727,7 @@ class GameScene: SKScene {
                 }
                 drawCompass(angle: calculateCompass() )
             }
-            if((playerWrapper.localPlayerId == playerWrapper.playerId) && !dontSendPos)
-            {
-                for i in (0..<playerWrapper.playerPos.count)
-                {
-                    if(i != playerWrapper.localPlayerId)
-                    {
-                        playerWrapper.playerPos[i].sender.sendData(params: preparePlayerToSendJSON())
-                    }
-                }
-            }
-            if(goFuther)
-            {
-                if(playerWrapper.playerId + 1 >= playerWrapper.playerPos.count)
-                {
-                    playerWrapper.playerId = 0
-                } else {
-                    playerWrapper.playerId += 1
-                }
-            }
+            
             if(endGame)
             {
                 // koniec połączeń
@@ -774,6 +810,8 @@ class GameScene: SKScene {
         case 0:
             if(!appLoaded)
             {
+                boardsWrapper.setWidthHeightRoundLabel(width: Double(self.size.width), height: Double(self.size.width))
+                boardsWrapper.setWidthHeightCounterLabel(width: Double(self.size.width), height: Double(self.size.width))
                 self.sender = TCPListener(port: 51210, players: self.playerWrapper, boards: self.boardsWrapper, scene: self)
                 self.appLoaded = true
                 
@@ -786,7 +824,6 @@ class GameScene: SKScene {
                 
                 self.ip1 = UITextField(frame: CGRect(x: 30, y: 100, width: 200, height: 30))
                 self.ip1.placeholder = "IP1"
-                self.ip1.text = "192.168.1.140"
                 self.ip1.font = UIFont.systemFont(ofSize: 15)
                 self.ip1.borderStyle = UITextBorderStyle.roundedRect
                 self.ip1.autocorrectionType = UITextAutocorrectionType.no
@@ -798,7 +835,6 @@ class GameScene: SKScene {
                 
                 self.port1 = UITextField(frame: CGRect(x: 250, y: 100, width: 100, height: 30))
                 self.port1.placeholder = "PORT1"
-                self.port1.text = "51210"
                 self.port1.font = UIFont.systemFont(ofSize: 15)
                 self.port1.borderStyle = UITextBorderStyle.roundedRect
                 self.port1.autocorrectionType = UITextAutocorrectionType.no
@@ -961,6 +997,7 @@ class GameScene: SKScene {
             
             break
         case 2:
+            
             buttonLeft = UIButton(frame: CGRect(x: 10, y: 80, width: 100, height: 50))
             buttonLeft.setTitle("Lewo", for: .normal)
             buttonLeft.addTarget(self, action: #selector(leftButton), for: .touchUpInside)
@@ -1005,7 +1042,6 @@ class GameScene: SKScene {
             {
                 makeMove(player: playerWrapper.playerPos[i], dontSendPos: true, goFuther: true)
             }
-            //drawCompass(angle: 0)
             
             boardsWrapper.boards[boardsWrapper.treasurePos.id].matrix[boardsWrapper.treasurePos.x][boardsWrapper.treasurePos.y] = 7
             gameState = 3
@@ -1014,6 +1050,24 @@ class GameScene: SKScene {
             for i in(0..<boardsWrapper.boards.count)
             {
                 boardsWrapper.boards[i].refreshBoard()
+            }
+            if(!endGame)
+            {
+                if(playerWrapper.localPlayerId == playerWrapper.playerId)
+                {
+                    if(currentTime - boardsWrapper.lastValueOfCounter >= 1)
+                    {
+                        boardsWrapper.counterLabel.text = String("Czas do konca rundy: \(boardsWrapper.numberOfCount)")
+                        if(boardsWrapper.numberOfCount == 0)
+                        {
+                            let newPlayer : player = playerWrapper.playerPos[playerWrapper.localPlayerId]
+                            makeMove(player: newPlayer, dontSendPos: false, goFuther: true)
+                        } else {
+                            boardsWrapper.numberOfCount -= 1
+                        }
+                        boardsWrapper.lastValueOfCounter = currentTime
+                    }
+                }
             }
             break
         default: break
@@ -1177,8 +1231,13 @@ class GameScene: SKScene {
     func generateTreasurePos() -> pos
     {
         let id: Int = boardsWrapper.boards[0].randomInt(min: 0, max: boardsWrapper.boards.count - 1)
-        let x: Int = boardsWrapper.boards[0].randomInt(min: 0, max: 19)
-        let y: Int = boardsWrapper.boards[0].randomInt(min: 0, max: 19)
+        var x: Int = boardsWrapper.boards[0].randomInt(min: 0, max: 19)
+        var y: Int = boardsWrapper.boards[0].randomInt(min: 0, max: 19)
+        while ((x == 9) && (y == 9))
+        {
+            x = boardsWrapper.boards[0].randomInt(min: 0, max: 19)
+            y = boardsWrapper.boards[0].randomInt(min: 0, max: 19)
+        }
         return pos(id: id, x: x, y: y)
     }
     

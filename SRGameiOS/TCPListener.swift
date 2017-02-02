@@ -142,6 +142,13 @@ class TCPListener : AnyObject
                     players.playerId += 1
                 }
             }
+            if(players.localPlayerId == players.playerId)
+            {
+                boards.roundLabel.text = String("Twoja kolej: Tak")
+                boards.numberOfCount = 30
+            } else {
+                boards.roundLabel.text = String("Twoja kolej: Nie")
+            }
         }
     }
     

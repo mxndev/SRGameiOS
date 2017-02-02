@@ -19,6 +19,7 @@
 		D030CA331E3C43F5004707BF /* TCPListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = D030CA311E3C43F5004707BF /* TCPListener.swift */; };
 		D030CA341E3C43F5004707BF /* TCPSender.swift in Sources */ = {isa = PBXBuildFile; fileRef = D030CA321E3C43F5004707BF /* TCPSender.swift */; };
 		D03212F61E36F94700BF3927 /* BoardModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D03212F51E36F94700BF3927 /* BoardModel.swift */; };
+		D03465F11E42A6DD0010A53B /* ModelWrappers.swift in Sources */ = {isa = PBXBuildFile; fileRef = D03465F01E42A6DD0010A53B /* ModelWrappers.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -49,6 +50,7 @@
 		D030CA311E3C43F5004707BF /* TCPListener.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TCPListener.swift; sourceTree = "<group>"; };
 		D030CA321E3C43F5004707BF /* TCPSender.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TCPSender.swift; sourceTree = "<group>"; };
 		D03212F51E36F94700BF3927 /* BoardModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BoardModel.swift; sourceTree = "<group>"; };
+		D03465F01E42A6DD0010A53B /* ModelWrappers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ModelWrappers.swift; sourceTree = "<group>"; };
 		D03EA4841E3D8EAB003D1A16 /* SRGameiOS-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "SRGameiOS-Bridging-Header.h"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
@@ -92,6 +94,7 @@
 				D03011561E35A713008EA4F2 /* GameScene.swift */,
 				D03011581E35A713008EA4F2 /* GameViewController.swift */,
 				D03212F51E36F94700BF3927 /* BoardModel.swift */,
+				D03465F01E42A6DD0010A53B /* ModelWrappers.swift */,
 				D030115A1E35A713008EA4F2 /* Main.storyboard */,
 				D030115D1E35A713008EA4F2 /* Assets.xcassets */,
 				D030115F1E35A713008EA4F2 /* LaunchScreen.storyboard */,
@@ -141,7 +144,7 @@
 				TargetAttributes = {
 					D030114C1E35A713008EA4F2 = {
 						CreatedOnToolsVersion = 8.2.1;
-						DevelopmentTeam = 7U9GZVNXL3;
+						DevelopmentTeam = P757LEMUCG;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -189,6 +192,7 @@
 				D03011591E35A713008EA4F2 /* GameViewController.swift in Sources */,
 				D030CA341E3C43F5004707BF /* TCPSender.swift in Sources */,
 				D03011511E35A713008EA4F2 /* AppDelegate.swift in Sources */,
+				D03465F11E42A6DD0010A53B /* ModelWrappers.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -311,7 +315,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = 7U9GZVNXL3;
+				DEVELOPMENT_TEAM = P757LEMUCG;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
@@ -319,7 +323,7 @@
 				INFOPLIST_FILE = SRGameiOS/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "mxn-dev.SRGameiOS2";
+				PRODUCT_BUNDLE_IDENTIFIER = "mxn-dev.SRGameiOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_DISABLE_SAFETY_CHECKS = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "SRGameiOS-Bridging-Header.h";
@@ -331,7 +335,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = 7U9GZVNXL3;
+				DEVELOPMENT_TEAM = P757LEMUCG;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
@@ -339,7 +343,7 @@
 				INFOPLIST_FILE = SRGameiOS/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "mxn-dev.SRGameiOS2";
+				PRODUCT_BUNDLE_IDENTIFIER = "mxn-dev.SRGameiOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_DISABLE_SAFETY_CHECKS = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "SRGameiOS-Bridging-Header.h";
