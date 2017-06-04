@@ -9,18 +9,27 @@
 import SpriteKit
 import GameplayKit
 
+enum StateType : Int
+{
+    case initialPage, connectingPage, initializeGamePage, gamePage
+}
+
+enum LoadingState : Int
+{
+    case setRoundQueue, sendingMap, generatingTreasure
+}
+
 class GameScene: SKScene {
     
     private var label : SKLabelNode?
     private var spinnyNode : SKShapeNode?
     var boardsWrapper : BoardsWrapper = BoardsWrapper(boards: [])
 
-    var gameState : Int = 0 // 0 - ekran wpisywania ip, 1 - ekran łączenia, 2 - inicjalizowanie gry, 3 - tryb gry
-    var initializingGameState : Int = 0 // 0 - ustawianie kolejki rundy, 1 - przesłanie map, 3 - generacja skarbu
+    var gameState : StateType = .initialPage // 0 - ekran wpisywania ip, 1 - ekran łączenia, 2 - inicjalizowanie gry, 3 - tryb gry
+    var initializingGameState : LoadingState = .setRoundQueue // 0 - ustawianie kolejki rundy, 1 - przesłanie map, 3 - generacja skarbu
     var appLoaded : Bool = false
     var roundQueueLoaded : Bool = false
     var playerWrapper : PlayerWrapper = PlayerWrapper(playerPos: [])
-    var playerRound : Int = 0
     var buttonLeft : UIButton = UIButton()
     var buttonRight : UIButton = UIButton()
     var buttonUp : UIButton = UIButton()
@@ -40,6 +49,26 @@ class GameScene: SKScene {
     var connect : UIButton = UIButton()
     var labelConnecting : SKLabelNode?
     var countOfPlayers : Int = 0
+    {
+        didSet
+        {
+            boardsWrapper.counterLabel.text = String("Czas do konca rundy: \(boardsWrapper.numberOfCount)")
+        }
+    }
+    var roundIndicator : Bool = false
+    {
+        didSet
+        {
+            if(roundIndicator)
+            {
+                boardsWrapper.roundLabel.text = String("Twoja kolej: Tak")
+            }
+            else
+            {
+                boardsWrapper.roundLabel.text = String("Twoja kolej: Nie")
+            }
+        }
+    }
     var endGame : Bool = false
     
     override func didMove(to view: SKView) {
@@ -383,21 +412,21 @@ class GameScene: SKScene {
     
     func checkMove(position : player) -> Bool
     {
-        if((boardsWrapper.boards[position.id].matrix[position.x][position.y] != 5))
+        if((boardsWrapper.boards[position.id].matrix[position.x][position.y] != .wallField))
         {
-            if((boardsWrapper.boards[position.id].matrix[position.x][position.y] == 1) && (playerWrapper.localPlayerId != 0))
+            if((boardsWrapper.boards[position.id].matrix[position.x][position.y] == .playerOne) && (playerWrapper.localPlayerId != 0))
             {
                 return false
             } else {
-                if((boardsWrapper.boards[position.id].matrix[position.x][position.y] == 2) && (playerWrapper.localPlayerId != 1))
+                if((boardsWrapper.boards[position.id].matrix[position.x][position.y] == .playerTwo) && (playerWrapper.localPlayerId != 1))
                 {
                     return false
                 } else {
-                    if((boardsWrapper.boards[position.id].matrix[position.x][position.y] == 3) && (playerWrapper.localPlayerId != 2))
+                    if((boardsWrapper.boards[position.id].matrix[position.x][position.y] == .playerThree) && (playerWrapper.localPlayerId != 2))
                     {
                         return false
                     } else {
-                        if((boardsWrapper.boards[position.id].matrix[position.x][position.y] == 4) && (playerWrapper.localPlayerId != 3))
+                        if((boardsWrapper.boards[position.id].matrix[position.x][position.y] == .playerFour) && (playerWrapper.localPlayerId != 3))
                         {
                             return false
                         } else {
@@ -416,7 +445,7 @@ class GameScene: SKScene {
     {
         if(checkMove(position: player))
         {
-            if(boardsWrapper.boards[player.id].matrix[player.x][player.y] == 6)
+            if(boardsWrapper.boards[player.id].matrix[player.x][player.y] == .mineFiled)
             {
                 let refreshAlert2 = UIAlertController(title: "Uwaga", message: "Wszedłeś na minę. Koniec gry!", preferredStyle: UIAlertControllerStyle.alert)
                 
@@ -433,9 +462,9 @@ class GameScene: SKScene {
                 
                 self.view?.window?.rootViewController?.present(refreshAlert2, animated: true, completion: nil)
                 // zmiana pozycji w tablicy
-                boardsWrapper.boards[playerWrapper.playerPos[playerWrapper.playerId].id].matrix[playerWrapper.playerPos[playerWrapper.playerId].x][playerWrapper.playerPos[playerWrapper.playerId].y] = 0
+                boardsWrapper.boards[playerWrapper.playerPos[playerWrapper.playerId].id].matrix[playerWrapper.playerPos[playerWrapper.playerId].x][playerWrapper.playerPos[playerWrapper.playerId].y] = .emptyField
                 playerWrapper.playerPos[playerWrapper.playerId] = player
-                boardsWrapper.boards[player.id].matrix[player.x][player.y] = playerWrapper.playerId + 1
+                boardsWrapper.boards[player.id].matrix[player.x][player.y] = FieldType(rawValue: playerWrapper.playerId + 1)!
                 
                 endGame = true
                 
@@ -459,7 +488,7 @@ class GameScene: SKScene {
                     }
                 }
             }
-            else if(boardsWrapper.boards[player.id].matrix[player.x][player.y] == 7)
+            else if(boardsWrapper.boards[player.id].matrix[player.x][player.y] == .treasureField)
             {
                 let refreshAlert = UIAlertController(title: "Uwaga", message: "Znalazłeś skarb. Wygrałeś!", preferredStyle: UIAlertControllerStyle.alert)
                 
@@ -476,9 +505,9 @@ class GameScene: SKScene {
                 
                 self.view?.window?.rootViewController?.present(refreshAlert, animated: true, completion: nil)
                 // zmiana pozycji w tablicy
-                boardsWrapper.boards[playerWrapper.playerPos[playerWrapper.playerId].id].matrix[playerWrapper.playerPos[playerWrapper.playerId].x][playerWrapper.playerPos[playerWrapper.playerId].y] = 0
+                boardsWrapper.boards[playerWrapper.playerPos[playerWrapper.playerId].id].matrix[playerWrapper.playerPos[playerWrapper.playerId].x][playerWrapper.playerPos[playerWrapper.playerId].y] = .emptyField
                 playerWrapper.playerPos[playerWrapper.playerId] = player
-                boardsWrapper.boards[player.id].matrix[player.x][player.y] = playerWrapper.playerId + 1
+                boardsWrapper.boards[player.id].matrix[player.x][player.y] = FieldType(rawValue: playerWrapper.playerId + 1)!
                 
                 endGame = true
                 
@@ -505,9 +534,9 @@ class GameScene: SKScene {
             else
             {
                 // zmiana pozycji w tablicy
-                boardsWrapper.boards[playerWrapper.playerPos[playerWrapper.playerId].id].matrix[playerWrapper.playerPos[playerWrapper.playerId].x][playerWrapper.playerPos[playerWrapper.playerId].y] = 0
+                boardsWrapper.boards[playerWrapper.playerPos[playerWrapper.playerId].id].matrix[playerWrapper.playerPos[playerWrapper.playerId].x][playerWrapper.playerPos[playerWrapper.playerId].y] = .emptyField
                 playerWrapper.playerPos[playerWrapper.playerId] = player
-                boardsWrapper.boards[player.id].matrix[player.x][player.y] = playerWrapper.playerId + 1
+                boardsWrapper.boards[player.id].matrix[player.x][player.y] = FieldType(rawValue: playerWrapper.playerId + 1)!
                 if(playerWrapper.localPlayerId == playerWrapper.playerId)
                 {
                     // odkrycie nowych pól
@@ -713,10 +742,10 @@ class GameScene: SKScene {
                 }
                 if(playerWrapper.localPlayerId == playerWrapper.playerId)
                 {
-                    boardsWrapper.roundLabel.text = String("Twoja kolej: Tak")
+                    roundIndicator = true
                     boardsWrapper.numberOfCount = 30
                 } else {
-                    boardsWrapper.roundLabel.text = String("Twoja kolej: Nie")
+                    roundIndicator = false
                 }
                 self.addChild(boardsWrapper.roundLabel)
                 self.addChild(boardsWrapper.counterLabel)
@@ -802,12 +831,12 @@ class GameScene: SKScene {
             message["randomQueue"] = queue as AnyObject?
             client.sendData(params: message)
         }
-        gameState = 1
+        gameState = .connectingPage
     }
     
     override func update(_ currentTime: TimeInterval) {
         switch gameState {
-        case 0:
+        case .connectingPage:
             if(!appLoaded)
             {
                 boardsWrapper.setWidthHeightRoundLabel(width: Double(self.size.width), height: Double(self.size.width))
@@ -897,9 +926,9 @@ class GameScene: SKScene {
                 self.view?.addSubview(self.connect)
             }
             break
-        case 1:
+        case .connectingPage:
             switch initializingGameState {
-            case 0:
+            case .setRoundQueue:
                 if(self.countOfPlayers == boardsWrapper.boards.count)
                 {
                     // gdy wszystkie roundQueue dotarły
@@ -935,11 +964,11 @@ class GameScene: SKScene {
                                 playerWrapper.playerPos[i].sender.sendData(params: boardsWrapper.boards[playerWrapper.localPlayerId].genereteMinesBuildingDictionary(id: playerWrapper.localPlayerId))
                             }
                         }
-                        initializingGameState = 1
+                        initializingGameState = .sendingMap
                     }
                 }
                 break
-            case 1:
+            case .sendingMap:
                 // roundQueue i map przesłane, decyzja  odnośnie treasure
                 if(sender.initialsMap == boardsWrapper.boards.count)
                 {
@@ -954,7 +983,7 @@ class GameScene: SKScene {
                                 playerWrapper.playerPos[i].sender.sendData(params: prepareTreasureToSendJSON())
                             }
                         }
-                        initializingGameState = 2
+                        initializingGameState = .generatingTreasure
                     }
                     
                     // jeśli nie, to oczekuj na pakiet i idz dalej
@@ -962,11 +991,11 @@ class GameScene: SKScene {
                     {
                         boardsWrapper.treasurePos = generateTreasurePos()
                             boardsWrapper.tresurePacketAnalysed = false
-                            initializingGameState = 2
+                            initializingGameState = .generatingTreasure
                     }
                 }
                 break
-            case 2:
+            case .generatingTreasure:
                 // zakonczono ładowanie elementów, uruchom grę
                 self.removeAllChildren()
                 for i in(0..<boardsWrapper.boards.count)
@@ -990,13 +1019,13 @@ class GameScene: SKScene {
                     boardsWrapper.boards[i].renderBoard()
                 }
                 drawCompass(angle: calculateCompass() )
-                gameState = 2
+                gameState = .initializeGamePage
                 break
             default: break
             }
             
             break
-        case 2:
+        case .initializeGamePage:
             
             buttonLeft = UIButton(frame: CGRect(x: 10, y: 80, width: 100, height: 50))
             buttonLeft.setTitle("Lewo", for: .normal)
@@ -1043,10 +1072,10 @@ class GameScene: SKScene {
                 makeMove(player: playerWrapper.playerPos[i], dontSendPos: true, goFuther: true)
             }
             
-            boardsWrapper.boards[boardsWrapper.treasurePos.id].matrix[boardsWrapper.treasurePos.x][boardsWrapper.treasurePos.y] = 7
-            gameState = 3
+            boardsWrapper.boards[boardsWrapper.treasurePos.id].matrix[boardsWrapper.treasurePos.x][boardsWrapper.treasurePos.y] = .treasureField
+            gameState = .gamePage
             break
-        case 3:
+        case .gamePage:
             for i in(0..<boardsWrapper.boards.count)
             {
                 boardsWrapper.boards[i].refreshBoard()
@@ -1057,7 +1086,6 @@ class GameScene: SKScene {
                 {
                     if(currentTime - boardsWrapper.lastValueOfCounter >= 1)
                     {
-                        boardsWrapper.counterLabel.text = String("Czas do konca rundy: \(boardsWrapper.numberOfCount)")
                         if(boardsWrapper.numberOfCount == 0)
                         {
                             let newPlayer : player = playerWrapper.playerPos[playerWrapper.localPlayerId]
@@ -1188,7 +1216,7 @@ class GameScene: SKScene {
         {
             for j in (0..<matrixEnable[i].count)
             {
-                boardsWrapper.boards[matrixEnable[i][j].id].matrixVisible[matrixEnable[i][j].x][matrixEnable[i][j].y] = 1
+                boardsWrapper.boards[matrixEnable[i][j].id].matrixVisible[matrixEnable[i][j].x][matrixEnable[i][j].y] = .visible
             }
         }
     }

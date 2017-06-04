@@ -100,9 +100,9 @@ class TCPListener : AnyObject
             newPlayer.id = convertToDictionary(text: convertToJSON(value: JSONDictionary?["player"] as AnyObject))?["p"] as! Int
             newPlayer.x = convertToDictionary(text: convertToJSON(value: JSONDictionary?["player"] as AnyObject))?["x"] as! Int
             newPlayer.y = convertToDictionary(text: convertToJSON(value: JSONDictionary?["player"] as AnyObject))?["y"] as! Int
-            if(boards.boards[newPlayer.id].matrix[newPlayer.x][newPlayer.y] == 6)
+            if(boards.boards[newPlayer.id].matrix[newPlayer.x][newPlayer.y] == .mineFiled)
             {
-                boards.boards[players.playerPos[players.playerId].id].matrix[players.playerPos[players.playerId].x][players.playerPos[players.playerId].y] = 0
+                boards.boards[players.playerPos[players.playerId].id].matrix[players.playerPos[players.playerId].x][players.playerPos[players.playerId].y] = .emptyField
                 players.playerPos.remove(at: players.playerId)
                 if(players.playerPos.count <= players.playerId)
                 {
@@ -113,7 +113,7 @@ class TCPListener : AnyObject
                     players.localPlayerId -= 1
                 }
             }
-            else if(boards.boards[newPlayer.id].matrix[newPlayer.x][newPlayer.y] == 7)
+            else if(boards.boards[newPlayer.id].matrix[newPlayer.x][newPlayer.y] == .treasureField)
             {
                 let refreshAlert = UIAlertController(title: "Uwaga", message: "Gracz nr \(players.playerId+1) znalazł skarb! Przegrałeś!", preferredStyle: UIAlertControllerStyle.alert)
                 
@@ -132,9 +132,9 @@ class TCPListener : AnyObject
             }
             else
             {
-                boards.boards[players.playerPos[players.playerId].id].matrix[players.playerPos[players.playerId].x][players.playerPos[players.playerId].y] = 0
+                boards.boards[players.playerPos[players.playerId].id].matrix[players.playerPos[players.playerId].x][players.playerPos[players.playerId].y] = .emptyField
                 players.playerPos[players.playerId] = newPlayer
-                boards.boards[newPlayer.id].matrix[newPlayer.x][newPlayer.y] = players.playerId + 1
+                boards.boards[newPlayer.id].matrix[newPlayer.x][newPlayer.y] = FieldType(rawValue: players.playerId + 1)!
                 if(players.playerId + 1 >= players.playerPos.count)
                 {
                     players.playerId = 0

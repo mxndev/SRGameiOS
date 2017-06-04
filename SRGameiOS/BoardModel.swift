@@ -9,11 +9,21 @@
 import Foundation
 import GameplayKit
 
+enum FieldType : Int
+{
+    case emptyField, playerOne, playerTwo, playerThree, playerFour, wallField, mineFiled, treasureField
+}
+
+enum FieldVisibility : Int
+{
+    case invisible, visible
+}
+
 class BoardModel {
     
     var lossNumber : Int = 0
-    public var matrix : [[Int]] = Array(repeating: Array(repeating: 0, count: 20), count: 20) // 1..4 - pozycje graczy, 5 - teren zabudowany, 6 - mina, 7 - skarb
-    public var matrixVisible : [[Int]] = Array(repeating: Array(repeating: 0, count: 20), count: 20) // 0 - nieodkryty, 1 - odkryty
+    public var matrix : [[FieldType]] = Array(repeating: Array(repeating: .emptyField, count: 20), count: 20) // 1..4 - pozycje graczy, 5 - teren zabudowany, 6 - mina, 7 - skarb
+    public var matrixVisible : [[FieldVisibility]] = Array(repeating: Array(repeating: .invisible, count: 20), count: 20) // 0 - nieodkryty, 1 - odkryty
     var matrixShape : [[SKShapeNode]] = []
     var label : [SKLabelNode] = []
     var posX : Int = 0
@@ -44,7 +54,7 @@ class BoardModel {
                     x = randomInt(min: 0, max: 19)
                     y = randomInt(min: 0, max: 19)
                 }
-                matrix[x][y] = 5
+                matrix[x][y] = .wallField
             }
             
             // ustawianie min
@@ -57,7 +67,7 @@ class BoardModel {
                     x = randomInt(min: 0, max: 19)
                     y = randomInt(min: 0, max: 19)
                 }
-                matrix[x][y] = 6
+                matrix[x][y] = .mineFiled
             }
             
         }
@@ -82,13 +92,13 @@ class BoardModel {
         // ustawianie zabudowan
         for element in fields
         {
-            matrix[element["x"] as! Int][element["y"] as! Int] = 5
+            matrix[element["x"] as! Int][element["y"] as! Int] = .wallField
         }
         
         // ustawianie min
         for element in mines
         {
-            matrix[element["x"] as! Int][element["y"] as! Int] = 6
+            matrix[element["x"] as! Int][element["y"] as! Int] = .mineFiled
         }
         
     }
@@ -101,7 +111,7 @@ class BoardModel {
         {
             for j in(0..<20)
             {
-                if(matrix[i][j] == 5)
+                if(matrix[i][j] == .wallField)
                 {
                     var element : Dictionary<String, AnyObject> = [:]
                     element["p"] = id as AnyObject?
@@ -115,7 +125,7 @@ class BoardModel {
         {
             for j in(0..<20)
             {
-                if(matrix[i][j] == 6)
+                if(matrix[i][j] == .mineFiled)
                 {
                     var element : Dictionary<String, AnyObject> = [:]
                     element["p"] = id as AnyObject?
@@ -140,37 +150,44 @@ class BoardModel {
         {
             for j in (0..<matrix[i].count)
             {
-                if(matrix[i][j] == 1)
+                switch(matrix[i][j])
                 {
+                case .playerOne:
                     matrixShape[i][j].fillColor = SKColor.blue
-                }
-                else if(matrix[i][j] == 2)
-                {
+                    break
+                case .playerTwo:
                     matrixShape[i][j].fillColor = SKColor.brown
-                }
-                else if(matrix[i][j] == 3)
-                {
+                    break
+                case .playerThree:
                     matrixShape[i][j].fillColor = SKColor.orange
-                }
-                else if(matrix[i][j] == 4)
-                {
+                    break
+                case .playerFour:
                     matrixShape[i][j].fillColor = SKColor.purple
+                    break
+                case .wallField:
+                    if(matrixVisible[i][j] == .visible)
+                    {
+                        matrixShape[i][j].fillColor = SKColor.yellow
+                    }
+                    break
+                case .treasureField:
+                    if(matrixVisible[i][j] == .visible)
+                    {
+                        matrixShape[i][j].fillColor = SKColor.cyan
+                    }
+                    break
+                default:
+                    break
                 }
-                else if((matrix[i][j] == 5) && (matrixVisible[i][j] == 1))
+                
+                switch(matrixVisible[i][j])
                 {
-                    matrixShape[i][j].fillColor = SKColor.yellow
-                }
-                else if((matrix[i][j] == 7) && (matrixVisible[i][j] == 1))
-                {
-                    matrixShape[i][j].fillColor = SKColor.cyan
-                }
-                else if(matrixVisible[i][j] == 1)
-                {
+                case .visible:
                     matrixShape[i][j].fillColor = SKColor.green
-                }
-                else if(matrixVisible[i][j] == 0)
-                {
+                    break
+                case .invisible:
                     matrixShape[i][j].fillColor = SKColor.white
+                    break
                 }
             }
         }
@@ -191,7 +208,7 @@ class BoardModel {
                     shapeLine[j].position = CGPoint(x: i*17 - Int(skScene.size.width*0.48) + posX, y: Int(skScene.size.height*0.5) - 15 - j*17 + posY)
                     skScene.addChild(shapeLine[j])
                 
-                    if((calculateMines(posX: i, posY: j) > 0) && (matrixVisible[i][j] == 1))
+                    if((calculateMines(posX: i, posY: j) > 0) && (matrixVisible[i][j] == .visible))
                     {
                         label.append(SKLabelNode(fontNamed: "Arial"))
                         label[label.count - 1].text = String(calculateMines(posX: i, posY: j))
@@ -221,7 +238,7 @@ class BoardModel {
             {
                 for j in (0..<matrix[i].count)
                 {
-                    if((calculateMines(posX: i, posY: j) > 0) && (matrixVisible[i][j] == 1))
+                    if((calculateMines(posX: i, posY: j) > 0) && (matrixVisible[i][j] == .visible))
                     {
                         label.append(SKLabelNode(fontNamed: "Arial"))
                         label[label.count - 1].text = String(calculateMines(posX: i, posY: j))
@@ -250,7 +267,7 @@ class BoardModel {
                 {
                     if((i >= 0) && (i <= 19) && (j >= 0) && (j <= 19))
                     {
-                        if(matrix[i][j] == 6)
+                        if(matrix[i][j] == .mineFiled)
                         {
                             counter += 1
                         }
